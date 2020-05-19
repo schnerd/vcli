@@ -1,15 +1,14 @@
 import path from 'path';
 import http from 'http';
+import {parse} from 'url';
 import {ReadStream as FsReadStream} from 'fs';
 import ReadStream = NodeJS.ReadStream;
 
+import nextJs from 'next';
 import csvParse from 'csv-parse';
 import express from 'express';
 import opener from 'opener';
-import ejs from 'ejs';
 import {bold} from 'chalk';
-
-const projectRoot = path.resolve(__dirname, '..');
 
 interface ServerOptions {
   file?: string,
@@ -17,23 +16,23 @@ interface ServerOptions {
   port?: number;
   host?: string;
   logger: (msg: string) => any;
+  dev: boolean;
 }
 
 export async function startServer(opts: ServerOptions) {
   const {
     port = 8888,
     host = '127.0.0.1',
-    file,
     reader,
     logger,
+    dev,
   } = opts;
 
   const app = express();
 
-  app.engine('ejs', require('ejs').renderFile);
-  app.set('view engine', 'ejs');
-  app.set('views', `${projectRoot}/src/client/views`);
-  app.use(express.static(`${projectRoot}/src/client/public`));
+  const nextApp = nextJs({dev, dir: './src/client'});
+  await nextApp.prepare();
+  const nextHandler = nextApp.getRequestHandler();
 
   // TODO This endpoint could be hit multiple times if the user refreshes the page, need to cache the data
   let data: Array<any>;
@@ -63,10 +62,14 @@ export async function startServer(opts: ServerOptions) {
     }
   });
 
-  app.get('/', (req, res) => {
-    res.render('index', {
-      title: `vcli | ${file ? path.basename(file) : 'Visualizing Streamed Data'}`,
-    });
+  // Set up next static directories first
+  const nextStaticDir = path.join(path.resolve(__dirname, './client/.next'), 'public');
+  app.use('/_next/public', express.static(nextStaticDir));
+
+  // Let next handle the other endpoints
+  app.use((req, res) => {
+    const parsedUrl = parse(req.url, true)
+    nextHandler(req, res, parsedUrl)
   });
 
   const server = http.createServer(app);

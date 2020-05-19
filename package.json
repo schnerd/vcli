@@ -16,7 +16,10 @@
     "ejs": "^3.1.3",
     "express": "^4.17.1",
     "lodash": "^4.17.15",
+    "next": "^9.4.1",
     "opener": "^1.5.1",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
     "tslib": "^1",
     "ws": "^7.3.0"
   },
@@ -26,6 +29,7 @@
     "@types/express": "^4.17.6",
     "@types/node": "^10",
     "@types/opener": "^1.4.0",
+    "@types/react": "^16.9.35",
     "eslint": "^5.13",
     "eslint-config-oclif": "^3.1",
     "eslint-config-oclif-typescript": "^0.1",
@@ -54,9 +58,10 @@
   "repository": "schnerd/vcli",
   "scripts": {
     "posttest": "eslint . --ext .ts --config .eslintrc",
-    "prepack": "rm -rf lib && tsc -b && oclif-dev readme",
-    "test": "echo NO TESTS",
-    "version": "oclif-dev readme && git add README.md"
+    "cli-prepack": "rm -rf lib && tsc -b && oclif-dev readme",
+    "cli-test": "echo NO TESTS",
+    "cli-version": "oclif-dev readme && git add README.md",
+    "client-build": "next build"
   },
   "types": "lib/index.d.ts"
 }

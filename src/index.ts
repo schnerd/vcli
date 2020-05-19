@@ -23,6 +23,7 @@ class Vcli extends Command {
     // add --version flag to show CLI version
     version: flags.version({char: 'v'}),
     help: flags.help({char: 'h'}),
+    dev: flags.boolean({hidden: true}),
   };
 
   static args = [{
@@ -38,6 +39,7 @@ class Vcli extends Command {
     startServer({
       reader,
       logger: this.log.bind(this),
+      dev: Boolean(flags.dev),
     });
   }
 
