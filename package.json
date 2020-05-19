@@ -1,0 +1,49 @@
+{
+  "name": "vcli",
+  "description": "Create quick visualizations from the command line",
+  "version": "0.0.0",
+  "author": "David Schnurr @schnerd",
+  "bin": {
+    "vcli": "./bin/run"
+  },
+  "bugs": "https://github.com/schnerd/vcli/issues",
+  "dependencies": {
+    "@oclif/command": "^1",
+    "@oclif/config": "^1",
+    "@oclif/plugin-help": "^3",
+    "tslib": "^1"
+  },
+  "devDependencies": {
+    "@oclif/dev-cli": "^1",
+    "@types/node": "^10",
+    "eslint": "^5.13",
+    "eslint-config-oclif": "^3.1",
+    "eslint-config-oclif-typescript": "^0.1",
+    "ts-node": "^8",
+    "typescript": "^3.3"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "files": [
+    "/bin",
+    "/lib"
+  ],
+  "homepage": "https://github.com/schnerd/vcli",
+  "keywords": [
+    "oclif"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "oclif": {
+    "bin": "vcli"
+  },
+  "repository": "schnerd/vcli",
+  "scripts": {
+    "posttest": "eslint . --ext .ts --config .eslintrc",
+    "prepack": "rm -rf lib && tsc -b && oclif-dev readme",
+    "test": "echo NO TESTS",
+    "version": "oclif-dev readme && git add README.md"
+  },
+  "types": "lib/index.d.ts"
+}
