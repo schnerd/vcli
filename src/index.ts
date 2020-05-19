@@ -1,7 +1,7 @@
-import {Command, flags} from '@oclif/command'
+import {Command, flags} from '@oclif/command';
 
 class Vcli extends Command {
-  static description = 'describe the command here'
+  static description = 'describe the command here';
 
   static flags = {
     // add --version flag to show CLI version
@@ -11,19 +11,19 @@ class Vcli extends Command {
     name: flags.string({char: 'n', description: 'name to print'}),
     // flag with no value (-f, --force)
     force: flags.boolean({char: 'f'}),
-  }
+  };
 
-  static args = [{name: 'file'}]
+  static args = [{name: 'file'}];
 
   async run() {
-    const {args, flags} = this.parse(Vcli)
+    const {args, flags} = this.parse(Vcli);
 
-    const name = flags.name ?? 'world'
-    this.log(`hello ${name} from ./src/index.ts`)
+    const name = flags.name ?? 'world';
+    this.log(`hello ${name} from ./src/index.ts`);
     if (args.file && flags.force) {
-      this.log(`you input --force and --file: ${args.file}`)
+      this.log(`you input --force and --file: ${args.file}`);
     }
   }
 }
 
-export = Vcli
+export = Vcli;
