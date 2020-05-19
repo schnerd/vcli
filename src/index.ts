@@ -1,4 +1,20 @@
 import {Command, flags} from '@oclif/command';
+// import csvParse from 'csv-parse';
+import fs, {ReadStream as FsReadStream} from 'fs';
+import path from 'path';
+import {startServer} from './server';
+import ReadStream = NodeJS.ReadStream;
+
+interface ArgsType {
+  file?: string | null;
+}
+interface FlagsType {
+}
+interface ParseType {
+  args: ArgsType;
+  flags: FlagsType;
+}
+type Row = Array<any>;
 
 class Vcli extends Command {
   static description = 'describe the command here';
@@ -7,22 +23,48 @@ class Vcli extends Command {
     // add --version flag to show CLI version
     version: flags.version({char: 'v'}),
     help: flags.help({char: 'h'}),
-    // flag with a value (-n, --name=VALUE)
-    name: flags.string({char: 'n', description: 'name to print'}),
-    // flag with no value (-f, --force)
-    force: flags.boolean({char: 'f'}),
   };
 
-  static args = [{name: 'file'}];
+  static args = [{
+    name: 'file',
+    required: false,
+    description: 'Explicit path to CSV file (instead of piping data into vcli)',
+  }];
 
   async run() {
     const {args, flags} = this.parse(Vcli);
+    const reader = this.getReadStream(args.file);
 
-    const name = flags.name ?? 'world';
-    this.log(`hello ${name} from ./src/index.ts`);
-    if (args.file && flags.force) {
-      this.log(`you input --force and --file: ${args.file}`);
+    startServer({
+      reader,
+      logger: this.log.bind(this),
+    });
+  }
+
+  // async parseInput(file: string | undefined  | null) {
+  //   const rs = this.getReadStream(file);
+  //   return new Promise<string[]>((resolve, reject) => {
+  //     let header: Row | undefined;
+  //     rs.pipe(csvParse())
+  //       .on('error', (err) => reject(err))
+  //       .on('data', (row) => {
+  //         if (!header) {
+  //           header = row;
+  //           resolve(header);
+  //           rs.destroy();
+  //         }
+  //       });
+  //   });
+  // }
+
+  getReadStream(file: string | undefined  | null): FsReadStream | ReadStream {
+    if (file) {
+      return fs.createReadStream(path.resolve(file));
     }
+    if (process.stdin.isTTY) {
+      this.error('vcli did not receive any data, please see \'vcli --help\'');
+    }
+    return process.stdin;
   }
 }
 
