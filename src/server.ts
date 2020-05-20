@@ -54,7 +54,10 @@ export async function startServer(opts: ServerOptions) {
           })
           .on('data', (row) => {
             data.push(row);
-          });
+          })
+          .on('end', () => {
+            resolve();
+          })
       });
       res.json(data);
     } catch(err) {

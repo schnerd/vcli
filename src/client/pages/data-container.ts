@@ -1,4 +1,3 @@
-
 type DataRow = Array<string | number>;
 type Data = Array<DataRow>;
 type Stats = Record<string, number>;
