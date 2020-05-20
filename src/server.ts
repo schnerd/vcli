@@ -64,7 +64,7 @@ export async function startServer(opts: ServerOptions) {
 
   // Set up next static directories first
   const nextStaticDir = path.join(path.resolve(__dirname, './client/.next'), 'public');
-  app.use('/_next/public', express.static(nextStaticDir));
+  app.use('/_next/static', express.static(nextStaticDir));
 
   // Let next handle the other endpoints
   app.use((req, res) => {
