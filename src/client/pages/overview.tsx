@@ -1,4 +1,5 @@
 import DataContainer, {DataTypes} from './data-container';
+import OverviewField from './overview-field';
 import {StatChart} from './stat-chart';
 
 interface Props {
@@ -14,45 +15,19 @@ const TYPE_LABELS: Record<DataTypes, string> = {
 export default function Overview(props: Props) {
   const {data} = props;
   let header = data.getHeader();
-  let stats = data.getOverview();
-  let types = data.getTypes();
-
   return (
     <>
-      <div className="stats">
+      <div className="root">
         {header.map((f, i) => {
-          let stat = stats[i];
-          return (
-            <div key={f} className="stat">
-              <h3 className="stat-title">{f}</h3>
-              <div>{TYPE_LABELS[types[i]]}</div>
-              <div className="stat-chart">
-                <StatChart stats={stat} />
-              </div>
-            </div>
-          );
+          return <OverviewField key={header[i]} data={data} col={i} />;
         })}
       </div>
       <style jsx>{`
-        .stats {
+        .root {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
           grid-gap: 10px;
           padding: 10px;
-        }
-
-        .stat {
-          padding: 10px;
-          background-color: white;
-          box-shadow: rgba(67, 90, 111, 0.3) 0px 0px 1px, rgba(67, 90, 111, 0.47) 0px 4px 10px -4px;
-        }
-        .stat-title {
-          margin: 0;
-        }
-        .stat-chart {
-          min-width: 300px;
-          height: 300px;
-          overflow-y: auto;
         }
       `}</style>
     </>

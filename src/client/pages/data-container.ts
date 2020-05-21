@@ -3,7 +3,7 @@ type DataRow = Array<string | number>;
 type Data = Array<DataRow>;
 export type Stats = Record<string, number>;
 
-export const NULL = '^^NULL^^';
+export const NULL = 'NULL';
 
 export enum DataTypes {
   date,
@@ -110,5 +110,9 @@ export default class DataContainer {
 
   getTypes() {
     return this.types;
+  }
+
+  getRows() {
+    return this.rows;
   }
 }
