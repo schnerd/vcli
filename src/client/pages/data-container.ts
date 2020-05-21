@@ -1,8 +1,8 @@
 type DataRow = Array<string | number>;
 type Data = Array<DataRow>;
-type Stats = Record<string, number>;
+export type Stats = Record<string, number>;
 
-const NULL = '^^NULL^^';
+export const NULL = '^^NULL^^';
 
 export default class DataContainer {
   private header: string[];
