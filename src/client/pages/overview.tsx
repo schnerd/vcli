@@ -1,14 +1,21 @@
-import DataContainer from './data-container';
+import DataContainer, {DataTypes} from './data-container';
 import {StatChart} from './stat-chart';
 
 interface Props {
   data: DataContainer;
 }
 
+const TYPE_LABELS: Record<DataTypes, string> = {
+  [DataTypes.date]: 'Date',
+  [DataTypes.num]: 'Num',
+  [DataTypes.text]: 'Text',
+};
+
 export default function Overview(props: Props) {
   const {data} = props;
   let header = data.getHeader();
-  let stats = data.getStats();
+  let stats = data.getOverview();
+  let types = data.getTypes();
 
   return (
     <>
@@ -18,6 +25,7 @@ export default function Overview(props: Props) {
           return (
             <div key={f} className="stat">
               <h3 className="stat-title">{f}</h3>
+              <div>{TYPE_LABELS[types[i]]}</div>
               <div className="stat-chart">
                 <StatChart stats={stat} />
               </div>

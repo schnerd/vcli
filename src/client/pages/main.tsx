@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import {useState} from 'react';
+import Overview from './overview';
 import {StatChart} from './stat-chart';
 import {useFetchData} from './use-fetch-data';
 
@@ -18,41 +19,32 @@ export default function Main() {
   } else if (error) {
     body = `error: ${error.toString()}`;
   } else if (data) {
-    let header = data.getHeader();
-    let stats = data.getStats();
-    body = (
-      <div className="stats">
-        {header.map((f, i) => {
-          let stat = stats[i];
-          return (
-            <div key={f} className="stat">
-              <h3 className="stat-title">{f}</h3>
-              <div className="stat-chart">
-                <StatChart stats={stat} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    )
+    body = <Overview data={data} />;
   }
 
   return (
     <div className="container">
       <header>
-        <h1 className="title"><span className="vcli">vcli</span><span className="pipe">|</span>Showing data from stdin</h1>
+        <h1 className="title">
+          <span className="vcli">vcli</span>
+          <span className="pipe">|</span>Showing data from stdin
+        </h1>
         <div className="nav">
-          <button className={clsx('nav-item', page === Page.overview && 'nav-sel')} onClick={() => setPage(Page.overview)}>
+          <button
+            className={clsx('nav-item', page === Page.overview && 'nav-sel')}
+            onClick={() => setPage(Page.overview)}
+          >
             Overview
           </button>
-          <button className={clsx('nav-item', page === Page.analysis && 'nav-sel')} onClick={() => setPage(Page.analysis)}>
+          <button
+            className={clsx('nav-item', page === Page.analysis && 'nav-sel')}
+            onClick={() => setPage(Page.analysis)}
+          >
             Analysis
           </button>
         </div>
       </header>
-      <main>
-        {body}
-      </main>
+      <main>{body}</main>
 
       <style jsx>{`
         .container {
@@ -85,7 +77,7 @@ export default function Main() {
           color: var(--n10);
         }
         .pipe {
-          color: #A6B1BB;
+          color: #a6b1bb;
           margin: 0 10px;
         }
 
@@ -100,7 +92,7 @@ export default function Main() {
           background: transparent;
           color: var(--n10);
           cursor: pointer;
-          fontSize: 1em;
+          fontsize: 1em;
           font-weight: 500;
           font-size: 12px;
           line-height: 1;
@@ -120,14 +112,13 @@ export default function Main() {
           color: var(--n1);
         }
 
-
         main {
           flex: 1;
         }
 
         :global(.stats) {
           display: grid;
-          grid-template-columns: repeat( auto-fit, minmax(300px, 1fr) );
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
           grid-gap: 10px;
           padding: 10px;
         }
@@ -147,5 +138,5 @@ export default function Main() {
         }
       `}</style>
     </div>
-  )
+  );
 }
