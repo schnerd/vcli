@@ -1,7 +1,7 @@
 import {useMemo} from 'react';
 import {bin} from 'd3-array';
 import DataContainer, {DataTypes, NULL} from './data-container';
-import {StatChart} from './stat-chart';
+import {Histogram} from './histogram';
 
 interface Props {
   data: DataContainer;
@@ -65,20 +65,24 @@ export default function OverviewField(props: Props) {
     });
 
     // Do we need to bin the numbers?
-    if (isNum && numUniques > BIN_AFTER && min !== null && max !== null) {
-      const binner = bin()
-        .domain([min, max])
-        .value((d) => parseFloat(d[col]))
-        .thresholds(10);
-      const binned = binner(rows);
+    if (isNum) {
+      if (numUniques > BIN_AFTER && min !== null && max !== null) {
+        const binner = bin()
+          .domain([min, max])
+          .value((d) => parseFloat(d[col]))
+          .thresholds(10);
+        const binned = binner(rows);
 
-      chartData = [];
-      binned.reverse().forEach((bin) => {
-        chartData.push({
-          label: `${bin.x0} - ${bin.x1}`,
-          value: bin.length,
+        chartData = [];
+        binned.forEach((bin) => {
+          chartData.push({
+            label: `${bin.x0} - ${bin.x1}`,
+            value: bin.length,
+          });
         });
-      });
+      }
+    } else {
+      chartData.sort((a, b) => b.value - a.value);
     }
 
     return {chartData};
@@ -92,7 +96,7 @@ export default function OverviewField(props: Props) {
           <div>{TYPE_LABELS[types[col]]}</div>
         </div>
         <div className="chart">
-          <StatChart data={chartData} />
+          <Histogram data={chartData} />
         </div>
       </div>
       <style jsx>{`
@@ -112,8 +116,9 @@ export default function OverviewField(props: Props) {
           margin: 0;
         }
         .chart {
-          overflow-y: auto;
           flex: 1 1 auto;
+          display: flex;
+          align-items: stretch;
         }
       `}</style>
     </>

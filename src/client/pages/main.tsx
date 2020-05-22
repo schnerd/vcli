@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import {useState} from 'react';
 import Overview from './overview';
-import {StatChart} from './stat-chart';
+import {Histogram} from './histogram';
 import {useFetchData} from './use-fetch-data';
 
 enum Page {
@@ -114,27 +114,6 @@ export default function Main() {
 
         main {
           flex: 1;
-        }
-
-        :global(.stats) {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-          grid-gap: 10px;
-          padding: 10px;
-        }
-
-        :global(.stat) {
-          padding: 10px;
-          background-color: white;
-          box-shadow: rgba(67, 90, 111, 0.3) 0px 0px 1px, rgba(67, 90, 111, 0.47) 0px 4px 10px -4px;
-        }
-        :global(.stat-title) {
-          margin: 0;
-        }
-        :global(.stat-chart) {
-          min-width: 300px;
-          height: 300px;
-          overflow-y: auto;
         }
       `}</style>
     </div>
