@@ -164,7 +164,7 @@ export const Histogram = memo(function _Histogram(props: Props) {
         .axis-y {
           width: 100%;
           height: 14px;
-          color: var(--n5);
+          color: var(--n4);
           flex: 0 0 auto;
         }
         .axis-y :global(.domain),
@@ -200,7 +200,7 @@ export const Histogram = memo(function _Histogram(props: Props) {
           text-align: right;
         }
         :global(.y-lines) {
-          color: var(--n5);
+          color: var(--n4);
         }
         :global(.y-lines text),
         :global(.y-lines .domain) {
