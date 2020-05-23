@@ -92,7 +92,6 @@ export default function Main() {
           background: transparent;
           color: var(--n10);
           cursor: pointer;
-          fontsize: 1em;
           font-weight: 500;
           font-size: 12px;
           line-height: 1;

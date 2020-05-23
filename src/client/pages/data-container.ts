@@ -13,13 +13,12 @@ export enum DataTypes {
 
 let DATE_TIME_RE = /^(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?/;
 let DATE_SIMPLE_RE = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-let NUM_RE = /^[$|£]?((\d+,)*\d+)(\.\d*)?$/;
+// let NUM_RE = /^[$|£]?((\d+,)*\d+)(\.\d*)?$/;
 let SAMPLE_SIZE = 100;
 
 export default class DataContainer {
   private header: string[];
   private rows: Data;
-  private overview: any[] | null = null;
   private count: number = 0;
 
   private _didDetection = false;
@@ -55,7 +54,14 @@ export default class DataContainer {
               break;
             }
           }
-          if (isNum && !NUM_RE.test(val)) {
+          // Client-side number parsing
+          // if (isNum && !NUM_RE.test(val)) {
+          //   isNum = false;
+          //   if (!isDate && !isNum) {
+          //     break;
+          //   }
+          // }
+          if (isNum && val != undefined && typeof val !== 'number') {
             isNum = false;
             if (!isDate && !isNum) {
               break;
@@ -78,34 +84,6 @@ export default class DataContainer {
 
   getHeader() {
     return this.header;
-  }
-
-  getOverview() {
-    if (this.overview) {
-      return this.overview;
-    }
-
-    let overview = this.header.map(() => ({}));
-
-    let cols = this.header.length;
-    for (let i = 0; i < this.rows.length; i++) {
-      let row = this.rows[i];
-      for (let j = 0; j < cols; j++) {
-        let val = row[j];
-        if (val == undefined) {
-          val = NULL;
-        }
-
-        let stat = overview[j];
-        if (!stat[val]) {
-          stat[val] = 0;
-        }
-        stat[val]++;
-      }
-    }
-
-    this.overview = overview;
-    return overview;
   }
 
   getTypes() {

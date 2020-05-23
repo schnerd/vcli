@@ -2,7 +2,8 @@ import {select} from 'd3-selection';
 import {scaleLinear, scaleBand} from 'd3-scale';
 import {extent, max} from 'd3-array';
 import {axisTop, axisLeft} from 'd3-axis';
-import {useRef, memo, useEffect} from 'react';
+import {useRef, memo, useEffect, useState, useMemo} from 'react';
+import {formatNumNice} from '../utils/format';
 import {useRenderOnResize} from './use-render-on-resize';
 
 interface DataPoint {
@@ -13,26 +14,22 @@ interface Props {
   data: DataPoint[];
 }
 
-function formatNumNice(n) {
-  let abbrev;
-  if (n >= 1e6) {
-    n = n / 1e6;
-    abbrev = 'm';
-  } else if (n >= 1e3) {
-    n = n / 1e3;
-    abbrev = 'k';
-  }
-  return abbrev ? `${n}${abbrev}` : String(n);
-}
+let HIDE_AFTER = 100;
 
 export const Histogram = memo(function _Histogram(props: Props) {
   const {data} = props;
+
+  const [showAll, setShowAll] = useState(false);
 
   const rootRef = useRef();
   const xAxisRef = useRef();
   const yAxisRef = useRef();
   const gridRef = useRef();
   const rect = useRenderOnResize(rootRef);
+
+  const rows = useMemo(() => {
+    return showAll ? data : data.slice(0, HIDE_AFTER);
+  }, [data, showAll]);
 
   useEffect(() => {
     const $root = select(rootRef.current);
@@ -46,7 +43,7 @@ export const Histogram = memo(function _Histogram(props: Props) {
 
     // Figure out x content width
 
-    const xLabels = data.map((d) => d.label);
+    const xLabels = rows.map((d) => d.label);
     const maxLabelChars = max(xLabels, (d) => d.length);
     const xAxisWidth = Math.min(maxLabelChars * 9 + 8, 120);
 
@@ -57,7 +54,7 @@ export const Histogram = memo(function _Histogram(props: Props) {
     const gridHeight = Math.max(height - yAxisHeight, xTickHeight * (xLabels.length + 1));
 
     // Figure out content height
-    const yExtent = extent(data, (d) => d.value);
+    const yExtent = extent(rows, (d) => d.value);
     const yScale = scaleLinear()
       .domain([0, Math.ceil(yExtent[1] * 1.1)])
       .range([0, gridWidth]);
@@ -80,7 +77,7 @@ export const Histogram = memo(function _Histogram(props: Props) {
 
     $yAxis
       .selectAll('g.axis')
-      .data([data])
+      .data([rows])
       .join(
         (enter) => {
           let sel = enter.append('g').classed('axis', true);
@@ -134,7 +131,7 @@ export const Histogram = memo(function _Histogram(props: Props) {
 
     $grid
       .selectAll('.bar')
-      .data(data)
+      .data(rows)
       .join(
         (enter) => enter.append('rect').classed('bar', true),
         (update) => update,
@@ -144,14 +141,24 @@ export const Histogram = memo(function _Histogram(props: Props) {
       .attr('y', (d) => xScale(d.label))
       .attr('width', (d) => yScale(d.value))
       .attr('height', xScale.bandwidth());
-  }, [rect, data]);
+  }, [rect, rows]);
+
+  let nRows = data.length;
+  let hiddenRows = nRows - HIDE_AFTER;
 
   return (
     <div className="root" ref={rootRef}>
       <svg className="axis axis-y" ref={yAxisRef} />
       <div className="scroll">
-        <div className="axis axis-x" ref={xAxisRef} />
-        <svg className="grid" ref={gridRef} />
+        <div className="scroll-chart">
+          <div className="axis axis-x" ref={xAxisRef} />
+          <svg className="grid" ref={gridRef} />
+        </div>
+        {nRows > HIDE_AFTER && !showAll && (
+          <button className="show-all-btn" onClick={() => setShowAll(true)}>
+            Show {hiddenRows} more value{hiddenRows === 1 ? '' : 's'}
+          </button>
+        )}
       </div>
       <style jsx>{`
         .root {
@@ -177,10 +184,32 @@ export const Histogram = memo(function _Histogram(props: Props) {
         .scroll {
           flex: 1 1 0;
           overflow-y: auto;
+        }
+        .scroll-chart {
+          min-height: 100%;
           display: flex;
           flex-direction: row;
           align-items: stretch;
           min-width: 0;
+        }
+
+        .show-all-btn {
+          border: none;
+          background: transparent;
+          color: var(--b9);
+          cursor: pointer;
+          text-align: center;
+          font-size: 14px;
+          font-weight: 600;
+          line-height: 1;
+          outline: none;
+          padding: 10px;
+          border-radius: 3px;
+          transition: 0.3s color;
+          width: 100%;
+        }
+        .show-all-btn:hover {
+          color: var(--b7);
         }
         .axis-x {
           position: relative;
