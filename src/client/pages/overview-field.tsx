@@ -24,7 +24,7 @@ export default function OverviewField(props: Props) {
   let types = data.getTypes();
   let field = header[col];
 
-  const {chartData, min, max, mean, p50, p95, nulls} = useMemo(() => {
+  const {chartData, min, max, mean, p50, p95, nulls, uniques} = useMemo(() => {
     let type = types[col];
     let val;
 
@@ -97,7 +97,7 @@ export default function OverviewField(props: Props) {
       chartData.sort((a, b) => b.value - a.value);
     }
 
-    return {chartData, min, max, mean, p50, p95, nulls};
+    return {chartData, min, max, mean, p50, p95, nulls, uniques: numUniques};
   }, [col, header, rows, types]);
 
   return (
@@ -106,36 +106,16 @@ export default function OverviewField(props: Props) {
         <div className="header">
           <h3 className="title">{field}</h3>
           <div className="stats">
-            <div className="stat">
-              <div className="stat-name">type</div>
-              <div className="stat-val">{TYPE_LABELS[types[col]]}</div>
-            </div>
-            <div className="stat">
-              <div className="stat-name">nulls</div>
-              <div className="stat-val">{formatNumNice(nulls)}</div>
-            </div>
+            <Stat name="type" val={TYPE_LABELS[types[col]]} />
+            <Stat name="null" val={nulls} />
+            <Stat name="uniq" val={uniques} />
             {types[col] === DataTypes.num && (
               <>
-                <div className="stat">
-                  <div className="stat-name">min</div>
-                  <div className="stat-val">{formatNumNice(min)}</div>
-                </div>
-                <div className="stat">
-                  <div className="stat-name">max</div>
-                  <div className="stat-val">{formatNumNice(max)}</div>
-                </div>
-                <div className="stat">
-                  <div className="stat-name">mean</div>
-                  <div className="stat-val">{formatNumNice(mean)}</div>
-                </div>
-                <div className="stat">
-                  <div className="stat-name">p50</div>
-                  <div className="stat-val">{formatNumNice(p50)}</div>
-                </div>
-                <div className="stat">
-                  <div className="stat-name">p95</div>
-                  <div className="stat-val">{formatNumNice(p95)}</div>
-                </div>
+                <Stat name="mean" val={mean} />
+                <Stat name="min" val={min} />
+                <Stat name="max" val={max} />
+                <Stat name="p50" val={p50} />
+                <Stat name="p95" val={p95} />
               </>
             )}
           </div>
@@ -161,10 +141,34 @@ export default function OverviewField(props: Props) {
           margin: 0;
         }
         .stats {
-          display: flex;
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr 1fr;
           align-items: center;
-          flex-wrap: wrap;
         }
+        .chart {
+          flex: 1 1 auto;
+          display: flex;
+          align-items: stretch;
+        }
+      `}</style>
+    </>
+  );
+}
+
+interface StatProps {
+  name: string;
+  val: number | string;
+}
+
+function Stat(props: StatProps) {
+  const {name, val} = props;
+  return (
+    <div className="stat">
+      <div className="stat-name">{name}</div>
+      <div className="stat-val" title={String(val)}>
+        {typeof val === 'number' ? formatNumNice(val) : val}
+      </div>
+      <style jsx>{`
         .stat {
           display: inline-flex;
           align-items: center;
@@ -181,12 +185,7 @@ export default function OverviewField(props: Props) {
           font-size: 13px;
           color: var(--n8);
         }
-        .chart {
-          flex: 1 1 auto;
-          display: flex;
-          align-items: stretch;
-        }
       `}</style>
-    </>
+    </div>
   );
 }
