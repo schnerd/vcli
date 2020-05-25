@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import {useState} from 'react';
+import Analysis from './analysis';
 import Overview from './overview';
-import {Histogram} from './histogram';
 import {useFetchData} from './use-fetch-data';
 
 enum Page {
@@ -19,7 +19,11 @@ export default function Main() {
   } else if (error) {
     body = `error: ${error.toString()}`;
   } else if (data) {
-    body = <Overview data={data} />;
+    if (page === Page.overview) {
+      body = <Overview data={data} />;
+    } else {
+      body = <Analysis data={data} />;
+    }
   }
 
   return (

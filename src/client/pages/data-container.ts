@@ -1,5 +1,5 @@
 import sampleSize from 'lodash/sampleSize';
-type DataRow = Array<string | number>;
+export type DataRow = Array<string | number>;
 type Data = Array<DataRow>;
 export type Stats = Record<string, number>;
 

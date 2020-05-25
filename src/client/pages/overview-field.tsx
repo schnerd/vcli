@@ -2,7 +2,7 @@ import {bin, quantileSorted} from 'd3-array';
 import {useMemo} from 'react';
 import {formatNumNice} from '../utils/format';
 import DataContainer, {DataTypes, NULL} from './data-container';
-import {Histogram} from './histogram';
+import {OverviewHistogram} from './overview-histogram';
 
 interface Props {
   data: DataContainer;
@@ -121,7 +121,7 @@ export default function OverviewField(props: Props) {
           </div>
         </div>
         <div className="chart">
-          <Histogram data={chartData} />
+          <OverviewHistogram data={chartData} />
         </div>
       </div>
       <style jsx>{`

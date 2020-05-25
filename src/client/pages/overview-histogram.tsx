@@ -16,7 +16,7 @@ interface Props {
 
 let HIDE_AFTER = 100;
 
-export const Histogram = memo(function _Histogram(props: Props) {
+export const OverviewHistogram = memo(function _Histogram(props: Props) {
   const {data} = props;
 
   const [showAll, setShowAll] = useState(false);

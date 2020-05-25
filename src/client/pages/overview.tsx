@@ -1,6 +1,5 @@
 import DataContainer, {DataTypes} from './data-container';
 import OverviewField from './overview-field';
-import {Histogram} from './histogram';
 
 interface Props {
   data: DataContainer;
