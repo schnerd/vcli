@@ -1,4 +1,4 @@
-import DataContainer, {DataTypes} from './data-container';
+import DataContainer from './data-container';
 import OverviewField from './overview-field';
 
 interface Props {
