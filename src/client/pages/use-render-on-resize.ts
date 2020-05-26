@@ -5,7 +5,7 @@ export function useRenderOnResize(ref: RefObject<any>) {
   const [rect, setRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
-    let cb = debounce(() => {
+    const cb = debounce(() => {
       if (ref.current) {
         setRect(ref.current.getBoundingClientRect());
       }

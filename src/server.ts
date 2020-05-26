@@ -11,7 +11,7 @@ import opener from 'opener';
 import {bold} from 'chalk';
 
 interface ServerOptions {
-  file?: string,
+  file?: string;
   reader: FsReadStream | ReadStream;
   port?: number;
   host?: string;
@@ -20,13 +20,7 @@ interface ServerOptions {
 }
 
 export async function startServer(opts: ServerOptions) {
-  const {
-    port = 8888,
-    host = '127.0.0.1',
-    reader,
-    logger,
-    dev,
-  } = opts;
+  const {port = 8888, host = '127.0.0.1', reader, logger, dev} = opts;
 
   const app = express();
 
@@ -45,10 +39,13 @@ export async function startServer(opts: ServerOptions) {
     try {
       await new Promise((resolve, reject) => {
         data = [];
-        reader.pipe(csvParse({
-          cast: true,
-          cast_date: false,
-        }))
+        reader
+          .pipe(
+            csvParse({
+              cast: true,
+              cast_date: false,
+            }),
+          )
           .on('error', (err) => {
             reject(err);
           })
@@ -57,10 +54,10 @@ export async function startServer(opts: ServerOptions) {
           })
           .on('end', () => {
             resolve();
-          })
+          });
       });
       res.json(data);
-    } catch(err) {
+    } catch (err) {
       next(err);
     }
   });
@@ -71,13 +68,13 @@ export async function startServer(opts: ServerOptions) {
 
   // Let next handle the other endpoints
   app.use((req, res) => {
-    const parsedUrl = parse(req.url, true)
-    nextHandler(req, res, parsedUrl)
+    const parsedUrl = parse(req.url, true);
+    nextHandler(req, res, parsedUrl);
   });
 
   const server = http.createServer(app);
 
-  await new Promise(resolve => {
+  await new Promise((resolve) => {
     server.listen(port, host, () => {
       resolve();
 
@@ -85,7 +82,7 @@ export async function startServer(opts: ServerOptions) {
 
       logger(
         `${bold('vcli')} | Visualizing your data at ${bold(url)}\n` +
-        `Use ${bold('Ctrl+C')} to close it`
+          `Use ${bold('Ctrl+C')} to close it`,
       );
 
       opener(url);
@@ -94,7 +91,6 @@ export async function startServer(opts: ServerOptions) {
 
   return {
     app,
-    server
+    server,
   };
 }
-

@@ -8,8 +8,7 @@ import ReadStream = NodeJS.ReadStream;
 interface ArgsType {
   file?: string | null;
 }
-interface FlagsType {
-}
+interface FlagsType {}
 interface ParseType {
   args: ArgsType;
   flags: FlagsType;
@@ -26,11 +25,13 @@ class Vcli extends Command {
     dev: flags.boolean({hidden: true}),
   };
 
-  static args = [{
-    name: 'file',
-    required: false,
-    description: 'Explicit path to CSV file (instead of piping data into vcli)',
-  }];
+  static args = [
+    {
+      name: 'file',
+      required: false,
+      description: 'Explicit path to CSV file (instead of piping data into vcli)',
+    },
+  ];
 
   async run() {
     const {args, flags} = this.parse(Vcli);
@@ -59,12 +60,12 @@ class Vcli extends Command {
   //   });
   // }
 
-  getReadStream(file: string | undefined  | null): FsReadStream | ReadStream {
+  getReadStream(file: string | undefined | null): FsReadStream | ReadStream {
     if (file) {
       return fs.createReadStream(path.resolve(file));
     }
     if (process.stdin.isTTY) {
-      this.error('vcli did not receive any data, please see \'vcli --help\'');
+      this.error("vcli did not receive any data, please see 'vcli --help'");
     }
     return process.stdin;
   }
