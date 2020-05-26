@@ -55,11 +55,14 @@ export const AnalysisChart = memo(function (props: Props) {
     const yExtent = extent(rows, (d) => d.value);
     const yMin = yExtent[0];
     const yMax = yExtent[1];
-    const yScale = scaleLinear()
-      .nice()
-      // TODO support negatives
-      .domain([yMin < 0 ? yMin : 0, yMax === yMin ? yMin + 1 : Math.ceil(yMax * 1.1)])
-      .range([0, gridHeight]);
+
+    const yScaleMin = yMin < 0 ? Math.floor(yMin * 1.1) : 0;
+    let yScaleMax = yMax < 0 ? 0 : Math.ceil(yMax * 1.1);
+    if (yScaleMax === 0 && yScaleMin === 0) {
+      yScaleMax = 1;
+    }
+
+    const yScale = scaleLinear().nice().domain([yScaleMin, yScaleMax]).range([0, gridHeight]);
     const yAxisScale = yScale.copy().range([gridHeight, 0]);
 
     const yAxisGen = axisLeft(yAxisScale)
@@ -131,14 +134,19 @@ export const AnalysisChart = memo(function (props: Props) {
     const bandwidth = xScale.bandwidth();
     if (rotateLabels) {
       const xTickOffset = Math.ceil(bandwidth / 2 + 2);
-      $xTicks.style('width', `${xAxisHeight * 1.2}px`).style('right', (d) => {
-        return `${gridWidth - xScale(d) - xTickOffset}px`;
-      });
+      $xTicks
+        .style('width', `${xAxisHeight * 1.2}px`)
+        .style('right', (d) => {
+          return `${gridWidth - xScale(d) - xTickOffset}px`;
+        })
+        .style('left', null)
+        .style('top', null);
     } else {
       $xTicks
         .style('width', `${bandwidth}px`)
         .style('top', '4px')
-        .style('left', (d) => `${xScale(d)}px`);
+        .style('left', (d) => `${xScale(d)}px`)
+        .style('right', null);
     }
 
     $grid
@@ -171,9 +179,16 @@ export const AnalysisChart = memo(function (props: Props) {
         (exit) => exit.remove(),
       )
       .attr('x', (d) => xScale(d.label) + xBarOffset)
-      .attr('y', (d) => gridHeight - yScale(d.value))
+      .attr('y', (d) => {
+        if (d.value >= 0) {
+          return gridHeight - yScale(d.value);
+        }
+        return gridHeight - yScale(0);
+      })
       .attr('width', barWidth)
-      .attr('height', (d) => yScale(d.value));
+      .attr('height', (d) => {
+        return Math.abs(yScale(d.value) - yScale(0));
+      });
   }, [rect, rows]);
 
   const nRows = data.length;

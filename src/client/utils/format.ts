@@ -1,9 +1,10 @@
 export function formatNumNice(n: number): string {
   let abbrev;
-  if (n >= 1e6) {
+  const abs = Math.abs(n);
+  if (abs >= 1e6) {
     n /= 1e6;
     abbrev = 'm';
-  } else if (n >= 1e3) {
+  } else if (abs >= 1e3) {
     n /= 1e3;
     abbrev = 'k';
   }
