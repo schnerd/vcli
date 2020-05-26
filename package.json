@@ -67,7 +67,7 @@
   },
   "repository": "schnerd/vcli",
   "scripts": {
-    "lint": "eslint . --ext .ts --config .eslintrc",
+    "lint": "eslint src --ext ts,tsx",
     "posttest": "npm lint",
     "cli-prepack": "rm -rf lib && tsc -b && oclif-dev readme",
     "cli-test": "echo NO TESTS",
