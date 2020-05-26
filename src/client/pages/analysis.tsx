@@ -2,7 +2,7 @@ import {max, mean, median, min, quantile, sum} from 'd3-array';
 import {useRouter} from 'next/router';
 import {useCallback, useMemo, useState} from 'react';
 import Select, {ValueType} from 'react-select';
-import {ChartFieldsMeta, DataPoint, DataTypes} from '../types';
+import {ChartFieldsMeta, DataPoint, DataTypes, DateAggType, NumAggType} from '../types';
 import AnalysisFacet from './analysis-facet';
 import DataContainer, {DataRow, NULL} from './data-container';
 import {FieldSelect, FieldSelectOption, selectComponents, selectTheme} from './field-select';
@@ -18,52 +18,60 @@ interface FacetObj {
   values: Array<DataPoint>;
 }
 
-enum AggType {
-  first,
-  min,
-  max,
-  sum,
-  mean,
-  median,
-  p5,
-  p95,
-}
-
-interface AggOption {
-  value: AggType;
+interface DateAggOption {
+  value: DateAggType;
   label: string;
 }
-const AGG_OPTIONS: AggOption[] = [
+const DATE_AGG_OPTIONS: DateAggOption[] = [
   {
-    value: AggType.first,
+    value: DateAggType.year,
+    label: 'Year',
+  },
+  {
+    value: DateAggType.month,
+    label: 'Month',
+  },
+  {
+    value: DateAggType.day,
+    label: 'Day',
+  },
+];
+
+interface NumAggOption {
+  value: NumAggType;
+  label: string;
+}
+const NUM_AGG_OPTIONS: NumAggOption[] = [
+  {
+    value: NumAggType.first,
     label: 'First',
   },
   {
-    value: AggType.min,
+    value: NumAggType.min,
     label: 'Min',
   },
   {
-    value: AggType.max,
+    value: NumAggType.max,
     label: 'Max',
   },
   {
-    value: AggType.sum,
+    value: NumAggType.sum,
     label: 'Sum',
   },
   {
-    value: AggType.mean,
+    value: NumAggType.mean,
     label: 'Mean',
   },
   {
-    value: AggType.median,
+    value: NumAggType.median,
     label: 'Median',
   },
   {
-    value: AggType.p5,
+    value: NumAggType.p5,
     label: 'P5',
   },
   {
-    value: AggType.p95,
+    value: NumAggType.p95,
     label: 'P95',
   },
 ];
@@ -82,16 +90,21 @@ export default function Analysis(props: Props) {
 
   const initialX = typeof header[Number(query.x)] === 'string' ? Number(query.x) : null;
   const initialY = typeof header[Number(query.y)] === 'string' ? Number(query.y) : null;
-  const initialYAgg: AggType | null = AggType[Number(query.yAgg)] ? Number(query.yAgg) : null;
+  const initialYAgg: NumAggType | null = NumAggType[Number(query.yAgg)] ? Number(query.yAgg) : null;
+  const initialDateAgg: DateAggType | null = DateAggType[Number(query.dateAgg)]
+    ? Number(query.dateAgg)
+    : DateAggType.day;
   const initialFacet = typeof header[Number(query.facet)] === 'string' ? Number(query.facet) : null;
 
   const [x, setX] = useState<number | null>(initialX);
   const [y, setY] = useState<number | null>(initialY);
   const [yAgg, setYAgg] = useState<number | null>(initialYAgg);
+  const [dateAgg, setDateAgg] = useState<number | null>(initialDateAgg);
   const [facet, setFacet] = useState<number | null>(initialFacet);
   const [showAllFacets, setShowAllFacets] = useState<boolean>(false);
 
-  const yAggOption = useSelectOption(AGG_OPTIONS, yAgg);
+  const yAggOption = useSelectOption(NUM_AGG_OPTIONS, yAgg);
+  const dateAggOption = useSelectOption(DATE_AGG_OPTIONS, dateAgg);
 
   const onChangeX = useCallback((v: number) => {
     setX(v);
@@ -99,8 +112,11 @@ export default function Analysis(props: Props) {
   const onChangeY = useCallback((v: number) => {
     setY(v);
   }, []);
-  const onChangeYAgg = useCallback((v: ValueType<AggOption>) => {
-    setYAgg(v ? (v as AggOption).value : null);
+  const onChangeYAgg = useCallback((v: ValueType<NumAggOption>) => {
+    setYAgg(v ? (v as NumAggOption).value : null);
+  }, []);
+  const onChangeDateAgg = useCallback((v: ValueType<DateAggOption>) => {
+    setDateAgg(v ? (v as DateAggOption).value : null);
   }, []);
   const onChangeFacet = useCallback((v: number) => {
     setFacet(v);
@@ -140,15 +156,18 @@ export default function Analysis(props: Props) {
     return ret;
   }, [rows, facet]);
 
-  let shouldShowAgg = yAgg !== null && yAgg !== AggType.first;
+  let shouldShowYAgg = yAgg !== null && yAgg !== NumAggType.first;
 
   const facets: FacetObj[] | null = useMemo(() => {
     if (x === null || y === null) {
       return null;
     }
 
+    const xIsDate = types[x] === DataTypes.num;
+    const xIsText = types[x] === DataTypes.text;
+
     const final = [];
-    const yAccessor = (row: DataRow) => row[y];
+    const yAccessor = (row: DataRow): any => row[y];
 
     Object.keys(facetedRows).forEach((facetKey) => {
       const rows = facetedRows[facetKey];
@@ -156,12 +175,30 @@ export default function Analysis(props: Props) {
       let hasNonNullValue = false;
       // Aggregate rows by x-value
       rows.forEach((row) => {
-        const xValue = row[x];
+        let xValue = row[x];
         // eslint-disable-next-line no-eq-null
         if (xValue == null) {
           return;
         }
+
+        // Handle date value binning
+        if (xIsDate) {
+          const d = new Date(xValue);
+          if (Number.isNaN(d.getTime())) {
+            return;
+          }
+          // Aggregate into right x bucket
+          d.setHours(0, 0, 0, 0);
+          if (dateAgg === DateAggType.month) {
+            d.setDate(1);
+          } else if (dateAgg === DateAggType.year) {
+            d.setMonth(0, 1);
+          }
+          xValue = d.getTime();
+        }
+
         hasNonNullValue = true;
+
         // TODO binning for nums/dates?
         if (!groupedByX[xValue]) {
           groupedByX[xValue] = [];
@@ -172,43 +209,50 @@ export default function Analysis(props: Props) {
       const groupedByXArray = [];
       Object.keys(groupedByX).forEach((xKey) => {
         const xRows = groupedByX[xKey];
-        if (!shouldShowAgg && xRows.length > 1) {
-          shouldShowAgg = true;
+        if (!shouldShowYAgg && xRows.length > 1) {
+          shouldShowYAgg = true;
         }
         const value = (function () {
           switch (yAgg) {
-            case AggType.min:
+            case NumAggType.min:
               return min(xRows, yAccessor);
-            case AggType.max:
+            case NumAggType.max:
               return max(xRows, yAccessor);
-            case AggType.mean:
+            case NumAggType.mean:
               return mean(xRows, yAccessor);
-            case AggType.sum:
+            case NumAggType.sum:
               return sum(xRows, yAccessor);
-            case AggType.median:
+            case NumAggType.median:
               return median(xRows, yAccessor);
-            case AggType.p5:
+            case NumAggType.p5:
               return quantile(xRows, 0.05, yAccessor);
-            case AggType.p95:
+            case NumAggType.p95:
               return quantile(xRows, 0.95, yAccessor);
-            case AggType.first:
+            case NumAggType.first:
             default:
               return yAccessor(xRows[0]);
           }
         })();
 
-        groupedByXArray.push({label: xKey, value: value});
+        if (xIsDate) {
+          const d = new Date(Number(xKey));
+          groupedByXArray.push({label: d, value: value});
+        } else {
+          groupedByXArray.push({label: xKey, value});
+        }
       });
 
       if (hasNonNullValue) {
-        // Sort by greatest value first (TODO only if x-axis is text)
-        groupedByXArray.sort((a, b) => b.value - a.value);
+        if (xIsText) {
+          // Sort by greatest value first
+          groupedByXArray.sort((a, b) => b.value - a.value);
+        }
         final.push({key: facetKey, values: groupedByXArray});
       }
     });
 
     return final;
-  }, [facetedRows, x, y, yAgg]);
+  }, [facetedRows, x, y, yAgg, dateAgg, types]);
 
   const nFacets = facets ? Object.keys(facets).length : 1;
   const hiddenFacets = nFacets - HIDE_FACETS_AFTER;
@@ -225,13 +269,14 @@ export default function Analysis(props: Props) {
       x: {
         index: x,
         type: types[x],
+        dateAgg,
       },
       y: {
         index: y,
         type: types[y],
       },
     };
-  }, [x, y, types]);
+  }, [x, y, dateAgg, types]);
 
   return (
     <>
@@ -243,6 +288,18 @@ export default function Analysis(props: Props) {
               <div className="field-select-wrapper">
                 <FieldSelect options={allFieldOptions} value={x} onChange={onChangeX} />
               </div>
+              {x !== null && types[x] === DataTypes.date && (
+                <div className="agg-select-wrapper">
+                  <Select
+                    options={DATE_AGG_OPTIONS}
+                    value={dateAggOption}
+                    placeholder="Agg"
+                    theme={selectTheme}
+                    components={selectComponents}
+                    onChange={onChangeDateAgg}
+                  />
+                </div>
+              )}
             </div>
           </div>
           <div className="config-option">
@@ -256,10 +313,10 @@ export default function Analysis(props: Props) {
                   noOptionsMessage={noNumOptionsMessage}
                 />
               </div>
-              {shouldShowAgg && (
+              {shouldShowYAgg && (
                 <div className="agg-select-wrapper">
                   <Select
-                    options={AGG_OPTIONS}
+                    options={NUM_AGG_OPTIONS}
                     value={yAggOption}
                     placeholder="Agg"
                     theme={selectTheme}

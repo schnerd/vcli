@@ -1,9 +1,9 @@
 import {extent, max} from 'd3-array';
 import {axisLeft} from 'd3-axis';
-import {scaleBand, scaleLinear} from 'd3-scale';
-import {select} from 'd3-selection';
+import {scaleBand, scaleLinear, ScaleBand} from 'd3-scale';
+import {select, Selection as D3Selection} from 'd3-selection';
 import {memo, useEffect, useMemo, useRef, useState} from 'react';
-import {ChartFieldsMeta, DataPoint} from '../types';
+import {ChartFieldsMeta, DataPoint, DataTypes, DateAggType} from '../types';
 import {formatNumNice} from '../utils/format';
 import {useRenderOnResize} from './use-render-on-resize';
 
@@ -18,8 +18,121 @@ const Y_AXIS_PADDING = 5;
 const X_AXIS_PADDING = 5;
 const MAX_BAR_WIDTH = 40;
 
+interface XAxis {
+  getBarWidth(): number;
+  getBarX(d: DataPoint): number;
+  getGridWidth(): number;
+  getHeight(): number;
+  setMinWidth(value: number): void;
+  render();
+}
+
+type Selection = D3Selection<any, any, any, any>;
+
+class OrdinalXAxis implements XAxis {
+  $xAxis: Selection;
+  numBars: number;
+  rotateLabels: boolean;
+  labels: string[];
+  maxLabelChars: number;
+  axisHeight: number;
+  tickLineHeight = 15;
+  tickWidth: number;
+  minWidth: number = null;
+  gridWidth = 0;
+  barWidth = 0;
+  barOffset = 0;
+  scale!: ScaleBand<any>;
+
+  constructor(args: {rows: DataPoint[]; $xAxis: Selection}) {
+    const {rows, $xAxis} = args;
+    this.$xAxis = $xAxis;
+    this.labels = rows.map((d) => String(d.label));
+    this.numBars = this.labels.length;
+    this.maxLabelChars = max(this.labels, (d) => String(d).length);
+    this.rotateLabels = this.maxLabelChars * 9 * this.numBars > 400;
+    this.axisHeight = this.rotateLabels
+      ? Math.min(this.maxLabelChars * 6, 100)
+      : this.tickLineHeight;
+    this.tickWidth = this.rotateLabels ? 25 : this.maxLabelChars * 9;
+  }
+
+  getBarWidth() {
+    return this.barWidth;
+  }
+
+  getBarX = (d: DataPoint) => {
+    return this.scale(d.label as any) + this.barOffset;
+  };
+
+  getGridWidth() {
+    return this.gridWidth;
+  }
+
+  getHeight() {
+    return this.axisHeight;
+  }
+
+  setMinWidth(value: number) {
+    this.minWidth = value;
+  }
+
+  render() {
+    if (this.minWidth === null) {
+      throw new Error('Invariant: min width not set before rendering');
+    }
+    this.gridWidth = Math.max(this.minWidth, this.numBars * this.tickWidth);
+
+    this.scale = scaleBand()
+      .domain(this.labels)
+      .range([0, this.gridWidth])
+      .paddingInner(0.1)
+      .paddingOuter(0.1);
+
+    // Set bar width/offset
+    const bandwidth = this.scale.bandwidth();
+    this.barWidth = bandwidth;
+    this.barOffset = 0;
+    if (this.barWidth > MAX_BAR_WIDTH) {
+      this.barWidth = MAX_BAR_WIDTH;
+      this.barOffset = Math.floor((bandwidth - this.barWidth) / 2);
+    }
+
+    this.$xAxis
+      .classed('x-rotate', this.rotateLabels)
+      .style('width', `${this.gridWidth}px`)
+      .style('height', `${this.axisHeight}px`);
+    const $xTicks = this.$xAxis
+      .selectAll('.x-tick')
+      .data(this.labels)
+      .join(
+        (enter) => enter.append('div').classed('x-tick', true),
+        (update) => update,
+        (exit) => exit.remove(),
+      )
+      .text((d) => (d === '' ? '[empty]' : d));
+
+    if (this.rotateLabels) {
+      const xTickOffset = Math.ceil(bandwidth / 2 + 2);
+      $xTicks
+        .style('width', `${this.axisHeight * 1.2}px`)
+        .style('right', (d) => {
+          return `${this.gridWidth - this.scale(d) - xTickOffset}px`;
+        })
+        .style('left', null)
+        .style('top', null);
+    } else {
+      $xTicks
+        .style('width', `${bandwidth}px`)
+        .style('top', '4px')
+        .style('left', (d) => `${this.scale(d)}px`)
+        .style('right', null);
+    }
+  }
+}
+
 export const AnalysisChart = memo(function (props: Props) {
-  const {data} = props;
+  const {data, fields} = props;
 
   const [showAll, setShowAll] = useState(false);
 
@@ -33,6 +146,9 @@ export const AnalysisChart = memo(function (props: Props) {
     return showAll ? data : data.slice(0, HIDE_AFTER);
   }, [data, showAll]);
 
+  const xIsDate = fields.x.type === DataTypes.date;
+  const dateAgg = fields.x.dateAgg as DateAggType;
+
   useEffect(() => {
     const $root = select(rootRef.current);
     const $xAxis = select(xAxisRef.current);
@@ -43,13 +159,9 @@ export const AnalysisChart = memo(function (props: Props) {
     const width = elRect.width;
     const height = elRect.height;
 
-    const xLabels = rows.map((d) => d.label);
-    const maxLabelChars = max(xLabels, (d) => d.length);
-    const rotateLabels = maxLabelChars * 9 * xLabels.length > 400;
-    const xTickLineHeight = 15;
-    const xAxisHeight = rotateLabels ? Math.min(maxLabelChars * 6, 100) : xTickLineHeight;
+    const xAxis: XAxis = new OrdinalXAxis({rows, $xAxis});
 
-    const gridHeight = height - xAxisHeight - X_AXIS_PADDING - CHART_PADDING;
+    const gridHeight = height - xAxis.getHeight() - X_AXIS_PADDING - CHART_PADDING;
 
     /* Render Y-axis */
     const yExtent = extent(rows, (d) => d.value);
@@ -70,7 +182,7 @@ export const AnalysisChart = memo(function (props: Props) {
       .tickSizeOuter(0)
       .tickSizeInner(0)
       .tickPadding(0)
-      .tickFormat((d) => formatNumNice(d));
+      .tickFormat((d) => formatNumNice(d as number));
 
     // First render the axis normally
     $yAxis
@@ -83,14 +195,16 @@ export const AnalysisChart = memo(function (props: Props) {
       )
       .call(yAxisGen);
 
-    const yAxisTextWidth = Math.ceil($yAxis.select('g.axis').node().getBoundingClientRect().width);
+    const yAxisTextWidth = Math.ceil(
+      ($yAxis.select('g.axis').node() as HTMLElement).getBoundingClientRect().width,
+    );
     $yAxis.select('g.axis').attr('transform', `translate(${yAxisTextWidth}, 0)`);
 
     const yAxisWidth = yAxisTextWidth + CHART_PADDING + Y_AXIS_PADDING;
     $yAxis.style('width', `${yAxisWidth}px`).style('height', `${gridHeight + 2}px`);
     $root.select('.scroll').style('padding-left', `${yAxisWidth}px`);
 
-    // Render line
+    // Render separator line
     $yAxis
       .selectAll('.y-line')
       .data([1])
@@ -107,47 +221,10 @@ export const AnalysisChart = memo(function (props: Props) {
       .attr('x2', yAxisTextWidth + Y_AXIS_PADDING);
 
     /* Render X-axis */
+    xAxis.setMinWidth(width - yAxisWidth);
+    xAxis.render();
 
-    const xTickWidth = rotateLabels ? 25 : maxLabelChars * 9;
-    const gridWidth = Math.max(width - yAxisWidth, xLabels.length * xTickWidth);
-
-    const xScale = scaleBand()
-      .domain(xLabels)
-      .range([0, gridWidth])
-      .paddingInner(0.1)
-      .paddingOuter(0.1);
-
-    $xAxis
-      .classed('x-rotate', rotateLabels)
-      .style('width', `${gridWidth}px`)
-      .style('height', `${xAxisHeight}px`);
-    const $xTicks = $xAxis
-      .selectAll('.x-tick')
-      .data(xLabels)
-      .join(
-        (enter) => enter.append('div').classed('x-tick', true),
-        (update) => update,
-        (exit) => exit.remove(),
-      )
-      .text((d) => (d === '' ? '[empty]' : d));
-
-    const bandwidth = xScale.bandwidth();
-    if (rotateLabels) {
-      const xTickOffset = Math.ceil(bandwidth / 2 + 2);
-      $xTicks
-        .style('width', `${xAxisHeight * 1.2}px`)
-        .style('right', (d) => {
-          return `${gridWidth - xScale(d) - xTickOffset}px`;
-        })
-        .style('left', null)
-        .style('top', null);
-    } else {
-      $xTicks
-        .style('width', `${bandwidth}px`)
-        .style('top', '4px')
-        .style('left', (d) => `${xScale(d)}px`)
-        .style('right', null);
-    }
+    const gridWidth = xAxis.getGridWidth();
 
     $grid
       .style('width', `${gridWidth}px`)
@@ -162,14 +239,6 @@ export const AnalysisChart = memo(function (props: Props) {
       .call(yAxisGen.tickSizeOuter(1).tickSizeInner(-gridWidth));
 
     /* Render Bars */
-
-    let barWidth = bandwidth;
-    let xBarOffset = 0;
-    if (barWidth > MAX_BAR_WIDTH) {
-      barWidth = MAX_BAR_WIDTH;
-      xBarOffset = Math.floor((bandwidth - barWidth) / 2);
-    }
-
     $grid
       .selectAll('.bar')
       .data(rows)
@@ -178,18 +247,18 @@ export const AnalysisChart = memo(function (props: Props) {
         (update) => update,
         (exit) => exit.remove(),
       )
-      .attr('x', (d) => xScale(d.label) + xBarOffset)
+      .attr('x', (d) => xAxis.getBarX(d))
       .attr('y', (d) => {
         if (d.value >= 0) {
           return gridHeight - yScale(d.value);
         }
         return gridHeight - yScale(0);
       })
-      .attr('width', barWidth)
+      .attr('width', xAxis.getBarWidth())
       .attr('height', (d) => {
         return Math.abs(yScale(d.value) - yScale(0));
       });
-  }, [rect, rows]);
+  }, [rect, rows, xIsDate, dateAgg]);
 
   const nRows = data.length;
   const hiddenRows = nRows - HIDE_AFTER;

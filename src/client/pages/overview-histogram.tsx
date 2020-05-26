@@ -39,7 +39,7 @@ export const OverviewHistogram = memo(function (props: Props) {
 
     // Figure out x content width
 
-    const xLabels = rows.map((d) => d.label);
+    const xLabels = rows.map((d) => String(d.label));
     const maxLabelChars = max(xLabels, (d) => d.length);
     const xAxisWidth = Math.min(maxLabelChars * 9 + 8, 120);
 
@@ -66,7 +66,7 @@ export const OverviewHistogram = memo(function (props: Props) {
       .tickSizeOuter(0)
       .tickSizeInner(-(height - yAxisHeight))
       .tickPadding(4)
-      .tickFormat((d) => formatNumNice(d));
+      .tickFormat((d) => formatNumNice(d as number));
 
     $yAxis
       .selectAll('g.axis')
@@ -127,7 +127,7 @@ export const OverviewHistogram = memo(function (props: Props) {
         (exit) => exit.remove(),
       )
       .attr('x', 0)
-      .attr('y', (d) => xScale(d.label))
+      .attr('y', (d) => xScale(String(d.label)))
       .attr('width', (d) => yScale(d.value))
       .attr('height', xScale.bandwidth());
   }, [rect, rows]);

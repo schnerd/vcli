@@ -6,8 +6,8 @@ type Data = Array<DataRow>;
 
 export const NULL = 'NULL';
 
-const DATE_TIME_RE = /^(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?/;
-const DATE_SIMPLE_RE = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+export const DATE_TIME_RE = /^(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?/;
+export const DATE_SIMPLE_RE = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
 // let NUM_RE = /^[$|£]?((\d+,)*\d+)(\.\d*)?$/;
 const SAMPLE_SIZE = 100;
 
