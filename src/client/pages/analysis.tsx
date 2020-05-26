@@ -3,6 +3,7 @@ import mapValues from 'lodash/mapValues';
 import {useRouter} from 'next/router';
 import {useCallback, useMemo, useState} from 'react';
 import Select, {ValueType} from 'react-select';
+import {DataPoint} from '../types';
 import AnalysisFacet from './analysis-facet';
 import DataContainer, {DataRow, NULL} from './data-container';
 import {FieldSelect, FieldSelectOption, selectComponents, selectTheme} from './field-select';
@@ -15,7 +16,7 @@ interface Props {
 type RowsGroupedByFacet = Record<string, DataRow[]>;
 interface FacetObj {
   key: string;
-  values: Record<string, number | null>;
+  values: Array<DataPoint>;
 }
 
 enum AggType {
@@ -162,34 +163,39 @@ export default function Analysis(props: Props) {
         groupedByX[xValue].push(row);
       });
 
-      groupedByX = mapValues(groupedByX, (xRows) => {
+      let groupedByXArray = [];
+      Object.keys(groupedByX).forEach((xKey) => {
+        const xRows = groupedByX[xKey];
         if (!shouldShowAgg && xRows.length > 1) {
-          debugger;
           shouldShowAgg = true;
         }
-        switch (yAgg) {
-          case AggType.min:
-            return min(xRows, yAccessor);
-          case AggType.max:
-            return max(xRows, yAccessor);
-          case AggType.mean:
-            return mean(xRows, yAccessor);
-          case AggType.sum:
-            return sum(xRows, yAccessor);
-          case AggType.median:
-            return median(xRows, yAccessor);
-          case AggType.p5:
-            return quantile(xRows, 0.05, yAccessor);
-          case AggType.p95:
-            return quantile(xRows, 0.95, yAccessor);
-          case AggType.first:
-          default:
-            return yAccessor(xRows[0]);
-        }
+        let value = (function () {
+          switch (yAgg) {
+            case AggType.min:
+              return min(xRows, yAccessor);
+            case AggType.max:
+              return max(xRows, yAccessor);
+            case AggType.mean:
+              return mean(xRows, yAccessor);
+            case AggType.sum:
+              return sum(xRows, yAccessor);
+            case AggType.median:
+              return median(xRows, yAccessor);
+            case AggType.p5:
+              return quantile(xRows, 0.05, yAccessor);
+            case AggType.p95:
+              return quantile(xRows, 0.95, yAccessor);
+            case AggType.first:
+            default:
+              return yAccessor(xRows[0]);
+          }
+        })();
+
+        groupedByXArray.push({label: xKey, value: value});
       });
 
       if (hasNonNullValue) {
-        final.push({key: facetKey, values: groupedByX});
+        final.push({key: facetKey, values: groupedByXArray});
       }
     });
 
@@ -222,6 +228,7 @@ export default function Analysis(props: Props) {
             <div className="config-name">Y-Axis</div>
             <div className="config-control">
               <div className="field-select-wrapper">
+                {/* TODO only allow numeric fields for y axis */}
                 <FieldSelect options={allFieldOptions} value={y} onChange={onChangeY} />
               </div>
               {shouldShowAgg && (
@@ -309,7 +316,7 @@ export default function Analysis(props: Props) {
         }
         .charts-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
           grid-gap: 10px;
         }
 

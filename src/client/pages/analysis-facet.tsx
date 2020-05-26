@@ -1,8 +1,9 @@
+import {DataPoint} from '../types';
 import {AnalysisChart} from './analysis-chart';
 
 interface Props {
   facet?: string;
-  data: Record<string, number | null>;
+  data: DataPoint[];
 }
 
 export default function AnalysisFacet(props: Props) {
@@ -22,10 +23,20 @@ export default function AnalysisFacet(props: Props) {
           min-width: 300px;
           height: 300px;
           overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
         }
         .name {
           padding: 10px;
           margin: 0;
+          flex: 0 0 auto;
+        }
+        .chart {
+          flex: 1 1 auto;
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
         }
       `}</style>
     </>

@@ -3,13 +3,10 @@ import {scaleLinear, scaleBand} from 'd3-scale';
 import {extent, max} from 'd3-array';
 import {axisTop, axisLeft} from 'd3-axis';
 import {useRef, memo, useEffect, useState, useMemo} from 'react';
+import {DataPoint} from '../types';
 import {formatNumNice} from '../utils/format';
 import {useRenderOnResize} from './use-render-on-resize';
 
-interface DataPoint {
-  label: string;
-  value: number;
-}
 interface Props {
   data: DataPoint[];
 }
@@ -53,7 +50,6 @@ export const OverviewHistogram = memo(function _Histogram(props: Props) {
     const gridWidth = width - xAxisWidth;
     const gridHeight = Math.max(height - yAxisHeight, xTickHeight * (xLabels.length + 1));
 
-    // Figure out content height
     const yExtent = extent(rows, (d) => d.value);
     const yScale = scaleLinear()
       .domain([0, Math.ceil(yExtent[1] * 1.1)])

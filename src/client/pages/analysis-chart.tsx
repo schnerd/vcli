@@ -1,28 +1,23 @@
 import {extent, max} from 'd3-array';
-import {axisTop} from 'd3-axis';
+import {axisLeft} from 'd3-axis';
 import {scaleBand, scaleLinear} from 'd3-scale';
 import {select} from 'd3-selection';
 import {memo, useEffect, useMemo, useRef, useState} from 'react';
+import {DataPoint} from '../types';
 import {formatNumNice} from '../utils/format';
 import {useRenderOnResize} from './use-render-on-resize';
 
 interface Props {
-  data: Record<string, number | null>;
+  data: DataPoint[];
 }
 
 let HIDE_AFTER = 100;
+let CHART_PADDING = 10;
+let Y_AXIS_PADDING = 5;
+let X_AXIS_PADDING = 5;
 
-export const AnalysisChart = memo(function _Histogram(props: Props) {
+export const AnalysisChart = memo(function Histogram(props: Props) {
   const {data} = props;
-  return (
-    <div>
-      {Object.keys(data).map((key) => (
-        <div key={key}>
-          {key}: {data[key]}
-        </div>
-      ))}
-    </div>
-  );
 
   const [showAll, setShowAll] = useState(false);
 
@@ -46,69 +41,80 @@ export const AnalysisChart = memo(function _Histogram(props: Props) {
     const width = elRect.width;
     const height = elRect.height;
 
-    // Figure out x content width
-
     const xLabels = rows.map((d) => d.label);
     const maxLabelChars = max(xLabels, (d) => d.length);
-    const xAxisWidth = Math.min(maxLabelChars * 9 + 8, 120);
+    const rotateLabels = maxLabelChars * 9 * xLabels.length > 400;
+    const xTickLineHeight = 15;
+    const xAxisHeight = rotateLabels ? Math.min(maxLabelChars * 9 + 8, 120) : xTickLineHeight;
 
-    const yAxisHeight = 14;
-    const xTickHeight = 15;
-
-    const gridWidth = width - xAxisWidth;
-    const gridHeight = Math.max(height - yAxisHeight, xTickHeight * (xLabels.length + 1));
-
-    // Figure out content height
-    const yExtent = extent(rows, (d) => d.value);
-    const yScale = scaleLinear()
-      .domain([0, Math.ceil(yExtent[1] * 1.1)])
-      .range([0, gridWidth]);
-
-    const xScale = scaleBand()
-      .domain(xLabels)
-      .range([0, gridHeight])
-      .paddingInner(0.1)
-      .paddingOuter(0.1);
+    const gridHeight = height - xAxisHeight - X_AXIS_PADDING - CHART_PADDING;
 
     ///////////////////
     // Render Y-axis //
     ///////////////////
-    const yAxisGen = axisTop(yScale)
+    const yExtent = extent(rows, (d) => d.value);
+    const yScale = scaleLinear()
+      .domain([0, Math.ceil(yExtent[1] * 1.1)])
+      .range([gridHeight, 0]);
+
+    const yAxisGen = axisLeft(yScale)
       .ticks(4)
       .tickSizeOuter(0)
-      .tickSizeInner(-(height - yAxisHeight))
-      .tickPadding(4)
+      .tickSizeInner(0)
+      .tickPadding(0)
       .tickFormat((d) => formatNumNice(d));
 
+    // First render the axis normally
     $yAxis
       .selectAll('g.axis')
       .data([rows])
       .join(
+        (enter) => enter.append('g').classed('axis', true),
+        (update) => update,
+        (exit) => exit.remove(),
+      )
+      .call(yAxisGen);
+
+    const yAxisTextWidth = Math.ceil($yAxis.select('g.axis').node().getBoundingClientRect().width);
+    $yAxis.select('g.axis').attr('transform', `translate(${yAxisTextWidth}, 0)`);
+
+    const yAxisWidth = yAxisTextWidth + CHART_PADDING + Y_AXIS_PADDING;
+    $yAxis.style('width', `${yAxisWidth}px`);
+
+    // Render line
+    $yAxis
+      .selectAll('.y-line')
+      .data([1])
+      .join(
         (enter) => {
-          let sel = enter.append('g').classed('axis', true);
-          enter
-            .append('line')
-            .classed('y-line', true)
-            .attr('stroke', 'currentColor')
-            .attr('y1', yAxisHeight - 1)
-            .attr('y2', yAxisHeight - 1)
-            .attr('x1', 0)
-            .attr('x2', width);
-          return sel;
+          return enter.append('line').classed('y-line', true).attr('stroke', 'currentColor');
         },
         (update) => update,
         (exit) => exit.remove(),
       )
-      .call(yAxisGen)
-      .attr('transform', `translate(${xAxisWidth},${yAxisHeight})`);
+      .attr('y1', 0)
+      .attr('y2', gridHeight)
+      .attr('x1', yAxisTextWidth + Y_AXIS_PADDING)
+      .attr('x2', yAxisTextWidth + Y_AXIS_PADDING);
 
     ///////////////////
     // Render X-axis //
     ///////////////////
 
-    let xTickOffset = Math.ceil(xScale.bandwidth() / 2 - xTickHeight / 2);
-    $xAxis.style('width', `${xAxisWidth}px`).style('height', `${gridHeight}px`);
+    const xTickWidth = rotateLabels ? 25 : maxLabelChars * 9;
+    const gridWidth = Math.max(width - yAxisWidth, xLabels.length * xTickWidth);
+
+    const xScale = scaleBand()
+      .domain(xLabels)
+      .range([0, gridWidth])
+      .paddingInner(0.1)
+      .paddingOuter(0.1);
+
     $xAxis
+      .classed('x-rotate', rotateLabels)
+      .style('width', `${gridWidth}px`)
+      .style('height', `${xAxisHeight}px`);
+    const $xTicks = $xAxis
       .selectAll('.x-tick')
       .data(xLabels)
       .join(
@@ -116,10 +122,23 @@ export const AnalysisChart = memo(function _Histogram(props: Props) {
         (update) => update,
         (exit) => exit.remove(),
       )
-      .text((d) => (d === '' ? '[empty]' : d))
-      .style('top', (d) => `${xScale(d) + xTickOffset}px`);
+      .text((d) => (d === '' ? '[empty]' : d));
+
+    let bandwidth = xScale.bandwidth();
+    if (rotateLabels) {
+      let xTickOffset = Math.ceil(bandwidth / 2 - xTickLineHeight / 2);
+      $xTicks
+        .style('width', `${xAxisHeight}px`)
+        .style('right', (d) => `${gridWidth - xScale(d) + xTickOffset}px`);
+    } else {
+      $xTicks
+        .style('width', `${bandwidth}px`)
+        .style('top', '0px')
+        .style('left', (d) => `${xScale(d)}px`);
+    }
 
     $grid
+      .style('width', `${gridWidth}px`)
       .style('height', `${gridHeight}px`)
       .selectAll('g.y-lines')
       .data([1])
@@ -128,7 +147,9 @@ export const AnalysisChart = memo(function _Histogram(props: Props) {
         (update) => update,
         (exit) => exit.remove(),
       )
-      .call(yAxisGen.tickSizeOuter(1).tickSizeInner(-gridHeight));
+      .call(yAxisGen.tickSizeOuter(1).tickSizeInner(-gridWidth));
+
+    /*
 
     /////////////////
     // Render Bars //
@@ -146,6 +167,7 @@ export const AnalysisChart = memo(function _Histogram(props: Props) {
       .attr('y', (d) => xScale(d.label))
       .attr('width', (d) => yScale(d.value))
       .attr('height', xScale.bandwidth());
+     */
   }, [rect, rows]);
 
   let nRows = data.length;
@@ -156,8 +178,8 @@ export const AnalysisChart = memo(function _Histogram(props: Props) {
       <svg className="axis axis-y" ref={yAxisRef} />
       <div className="scroll">
         <div className="scroll-chart">
-          <div className="axis axis-x" ref={xAxisRef} />
           <svg className="grid" ref={gridRef} />
+          <div className="axis axis-x" ref={xAxisRef} />
         </div>
         {nRows > HIDE_AFTER && !showAll && (
           <button className="show-all-btn" onClick={() => setShowAll(true)}>
@@ -169,15 +191,17 @@ export const AnalysisChart = memo(function _Histogram(props: Props) {
         .root {
           flex: 1 0 auto;
           display: flex;
-          flex-direction: column;
+          flex-direction: row;
           align-items: stretch;
-          max-width: 100%;
+          max-height: 100%;
         }
         .axis-y {
-          width: 100%;
-          height: 14px;
+          height: 100%;
+          min-width: 10px;
           color: var(--n4);
           flex: 0 0 auto;
+          padding: 0 5px 0 10px;
+          overflow: visible;
         }
         .axis-y :global(.domain),
         .axis-y :global(.tick line) {
@@ -188,51 +212,39 @@ export const AnalysisChart = memo(function _Histogram(props: Props) {
         }
         .scroll {
           flex: 1 1 0;
-          overflow-y: auto;
+          overflow-x: auto;
         }
         .scroll-chart {
-          min-height: 100%;
+          min-width: 100%;
           display: flex;
-          flex-direction: row;
+          flex-direction: column;
           align-items: stretch;
           min-width: 0;
         }
 
-        .show-all-btn {
-          border: none;
-          background: transparent;
-          color: var(--b9);
-          cursor: pointer;
-          text-align: center;
-          font-size: 14px;
-          font-weight: 600;
-          line-height: 1;
-          outline: none;
-          padding: 10px;
-          border-radius: 3px;
-          transition: 0.3s color;
-          width: 100%;
-        }
-        .show-all-btn:hover {
-          color: var(--b7);
-        }
         .axis-x {
           position: relative;
           overflow: visible;
           flex: 0 0 auto;
+          padding-top: 5px;
         }
+
         :global(.x-tick) {
           font-size: 12px;
           height: 15px;
           line-height: 15px;
           position: absolute;
-          left: 4px;
-          right: 4px;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          text-align: right;
+          text-align: center;
         }
+        :global(.x-rotate .x-tick) {
+          text-align: right;
+          transform-origin: center right;
+          transform: rotate(-45deg) translateY(-50%);
+        }
+
         :global(.y-lines) {
           color: var(--n4);
         }
