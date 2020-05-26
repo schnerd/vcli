@@ -116,9 +116,7 @@ export const OverviewHistogram = memo(function (props: Props) {
       )
       .call(yAxisGen.tickSizeOuter(1).tickSizeInner(-gridHeight));
 
-    /////////////////
-    // Render Bars //
-    /////////////////
+    /* Render Bars */
 
     $grid
       .selectAll('.bar')
@@ -134,8 +132,8 @@ export const OverviewHistogram = memo(function (props: Props) {
       .attr('height', xScale.bandwidth());
   }, [rect, rows]);
 
-  let nRows = data.length;
-  let hiddenRows = nRows - HIDE_AFTER;
+  const nRows = data.length;
+  const hiddenRows = nRows - HIDE_AFTER;
 
   return (
     <div className="root" ref={rootRef}>

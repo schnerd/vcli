@@ -69,7 +69,7 @@ const AGG_OPTIONS: AggOption[] = [
   },
 ];
 
-let HIDE_FACETS_AFTER = 50;
+const HIDE_FACETS_AFTER = 50;
 
 export default function Analysis(props: Props) {
   const {data} = props;
@@ -79,10 +79,10 @@ export default function Analysis(props: Props) {
 
   const query = useRouter().query;
 
-  let initialX = typeof header[Number(query.x)] === 'string' ? Number(query.x) : null;
-  let initialY = typeof header[Number(query.y)] === 'string' ? Number(query.y) : null;
-  let initialYAgg: AggType | null = AggType[Number(query.yAgg)] ? Number(query.yAgg) : null;
-  let initialFacet = typeof header[Number(query.facet)] === 'string' ? Number(query.facet) : null;
+  const initialX = typeof header[Number(query.x)] === 'string' ? Number(query.x) : null;
+  const initialY = typeof header[Number(query.y)] === 'string' ? Number(query.y) : null;
+  const initialYAgg: AggType | null = AggType[Number(query.yAgg)] ? Number(query.yAgg) : null;
+  const initialFacet = typeof header[Number(query.facet)] === 'string' ? Number(query.facet) : null;
 
   const [x, setX] = useState<number | null>(initialX);
   const [y, setY] = useState<number | null>(initialY);
@@ -142,12 +142,12 @@ export default function Analysis(props: Props) {
       return null;
     }
 
-    let final = [];
-    let yAccessor = (row: DataRow) => row[y];
+    const final = [];
+    const yAccessor = (row: DataRow) => row[y];
 
     Object.keys(facetedRows).forEach((facetKey) => {
-      let rows = facetedRows[facetKey];
-      let groupedByX = {};
+      const rows = facetedRows[facetKey];
+      const groupedByX = {};
       let hasNonNullValue = false;
       // Aggregate rows by x-value
       rows.forEach((row) => {
@@ -163,13 +163,13 @@ export default function Analysis(props: Props) {
         groupedByX[xValue].push(row);
       });
 
-      let groupedByXArray = [];
+      const groupedByXArray = [];
       Object.keys(groupedByX).forEach((xKey) => {
         const xRows = groupedByX[xKey];
         if (!shouldShowAgg && xRows.length > 1) {
           shouldShowAgg = true;
         }
-        let value = (function () {
+        const value = (function () {
           switch (yAgg) {
             case AggType.min:
               return min(xRows, yAccessor);
@@ -204,8 +204,8 @@ export default function Analysis(props: Props) {
     return final;
   }, [facetedRows, x, y, yAgg]);
 
-  let nFacets = facets ? Object.keys(facets).length : 1;
-  let hiddenFacets = nFacets - HIDE_FACETS_AFTER;
+  const nFacets = facets ? Object.keys(facets).length : 1;
+  const hiddenFacets = nFacets - HIDE_FACETS_AFTER;
 
   const facetsShown = useMemo(() => {
     if (!facets || showAllFacets) {

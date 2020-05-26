@@ -11,11 +11,11 @@ interface Props {
   data: DataPoint[];
 }
 
-let HIDE_AFTER = 100;
-let CHART_PADDING = 10;
-let Y_AXIS_PADDING = 5;
-let X_AXIS_PADDING = 5;
-let MAX_BAR_WIDTH = 40;
+const HIDE_AFTER = 100;
+const CHART_PADDING = 10;
+const Y_AXIS_PADDING = 5;
+const X_AXIS_PADDING = 5;
+const MAX_BAR_WIDTH = 40;
 
 export const AnalysisChart = memo(function Histogram(props: Props) {
   const {data} = props;
@@ -38,7 +38,7 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
     const $yAxis = select(yAxisRef.current);
     const $grid = select(gridRef.current);
 
-    let elRect = rect || (rootRef.current as HTMLElement).getBoundingClientRect();
+    const elRect = rect || (rootRef.current as HTMLElement).getBoundingClientRect();
     const width = elRect.width;
     const height = elRect.height;
 
@@ -50,9 +50,7 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
 
     const gridHeight = height - xAxisHeight - X_AXIS_PADDING - CHART_PADDING;
 
-    ///////////////////
-    // Render Y-axis //
-    ///////////////////
+    /* Render Y-axis */
     const yExtent = extent(rows, (d) => d.value);
     const yMin = yExtent[0];
     const yMax = yExtent[1];
@@ -104,9 +102,7 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
       .attr('x1', yAxisTextWidth + Y_AXIS_PADDING)
       .attr('x2', yAxisTextWidth + Y_AXIS_PADDING);
 
-    ///////////////////
-    // Render X-axis //
-    ///////////////////
+    /* Render X-axis */
 
     const xTickWidth = rotateLabels ? 25 : maxLabelChars * 9;
     const gridWidth = Math.max(width - yAxisWidth, xLabels.length * xTickWidth);
@@ -131,9 +127,9 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
       )
       .text((d) => (d === '' ? '[empty]' : d));
 
-    let bandwidth = xScale.bandwidth();
+    const bandwidth = xScale.bandwidth();
     if (rotateLabels) {
-      let xTickOffset = Math.ceil(bandwidth / 2 + 2);
+      const xTickOffset = Math.ceil(bandwidth / 2 + 2);
       $xTicks.style('width', `${xAxisHeight * 1.2}px`).style('right', (d) => {
         return `${gridWidth - xScale(d) - xTickOffset}px`;
       });
@@ -156,9 +152,7 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
       )
       .call(yAxisGen.tickSizeOuter(1).tickSizeInner(-gridWidth));
 
-    /////////////////
-    // Render Bars //
-    /////////////////
+    /* Render Bars */
 
     let barWidth = bandwidth;
     let xBarOffset = 0;
@@ -181,8 +175,8 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
       .attr('height', (d) => yScale(d.value));
   }, [rect, rows]);
 
-  let nRows = data.length;
-  let hiddenRows = nRows - HIDE_AFTER;
+  const nRows = data.length;
+  const hiddenRows = nRows - HIDE_AFTER;
 
   return (
     <div className="root" ref={rootRef}>

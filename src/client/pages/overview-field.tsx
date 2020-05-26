@@ -19,13 +19,13 @@ const BIN_AFTER = 10;
 
 export default function OverviewField(props: Props) {
   const {data, col} = props;
-  let header = data.getHeader();
-  let rows = data.getRows();
-  let types = data.getTypes();
-  let field = header[col];
+  const header = data.getHeader();
+  const rows = data.getRows();
+  const types = data.getTypes();
+  const field = header[col];
 
   const {chartData, min, max, mean, p50, p95, nulls, uniques} = useMemo(() => {
-    let type = types[col];
+    const type = types[col];
     let val;
 
     let min = null;
@@ -35,11 +35,11 @@ export default function OverviewField(props: Props) {
     let p50 = null;
     let p95 = null;
     let nulls = 0;
-    let isNum = type === DataTypes.num;
-    let isDate = type === DataTypes.date;
+    const isNum = type === DataTypes.num;
+    const isDate = type === DataTypes.date;
 
     // First collect & count unique values (detect  min/max at the same time)
-    let uniqueCounts = {};
+    const uniqueCounts = {};
     for (let i = 0; i < rows.length; i++) {
       val = rows[i][col];
       if (val == undefined) {
@@ -63,7 +63,7 @@ export default function OverviewField(props: Props) {
       // Numeric stats
       const sorted = rows
         .map((d) => {
-          let val = d[col];
+          const val = d[col];
           if (typeof val === 'number') {
             total += val;
             return val;

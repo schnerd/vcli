@@ -13,7 +13,7 @@ const TYPE_LABELS: Record<DataTypes, string> = {
 
 export default function Overview(props: Props) {
   const {data} = props;
-  let header = data.getHeader();
+  const header = data.getHeader();
   return (
     <>
       <div className="root">
