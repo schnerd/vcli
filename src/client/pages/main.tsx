@@ -3,6 +3,7 @@ import {useState} from 'react';
 import Analysis from './analysis';
 import Overview from './overview';
 import {useFetchData} from './use-fetch-data';
+import {VcliLogo} from './vcli-logo';
 
 enum Page {
   overview,
@@ -30,7 +31,9 @@ export default function Main() {
     <div className="container">
       <header>
         <h1 className="title">
-          <span className="vcli">vcli</span>
+          <span className="vcli">
+            <VcliLogo />
+          </span>
           <span className="pipe">|</span>Showing data from stdin
         </h1>
         <div className="nav">
@@ -73,12 +76,15 @@ export default function Main() {
           font-size: 14px;
           margin: 0;
           font-weight: 500;
+          display: flex;
+          align-items: center;
         }
         .vcli {
           text-transform: uppercase;
           font-weight: bold;
           letter-spacing: 4px;
           color: var(--n10);
+          margin-top: 2px;
         }
         .pipe {
           color: #a6b1bb;

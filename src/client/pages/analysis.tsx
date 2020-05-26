@@ -310,7 +310,7 @@ export default function Analysis(props: Props) {
           width: 160px;
         }
         .agg-select-wrapper {
-          width: 90px;
+          width: 100px;
           margin-left: 5px;
         }
 

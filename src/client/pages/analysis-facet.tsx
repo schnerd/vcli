@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import {DataPoint} from '../types';
 import {AnalysisChart} from './analysis-chart';
 
@@ -28,7 +29,7 @@ export default function AnalysisFacet(props: Props) {
           align-items: stretch;
         }
         .name {
-          padding: 10px;
+          padding: 10px 10px 0 10px;
           margin: 0;
           flex: 0 0 auto;
         }

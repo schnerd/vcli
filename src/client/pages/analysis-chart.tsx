@@ -54,9 +54,12 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
     // Render Y-axis //
     ///////////////////
     const yExtent = extent(rows, (d) => d.value);
+    const yMin = yExtent[0];
+    const yMax = yExtent[1];
     const yScale = scaleLinear()
       .nice()
-      .domain([0, Math.ceil(yExtent[1] * 1.1)])
+      // TODO support negatives
+      .domain([yMin < 0 ? yMin : 0, yMax === yMin ? yMin + 1 : Math.ceil(yMax * 1.1)])
       .range([0, gridHeight]);
     const yAxisScale = yScale.copy().range([gridHeight, 0]);
 
@@ -82,7 +85,7 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
     $yAxis.select('g.axis').attr('transform', `translate(${yAxisTextWidth}, 0)`);
 
     const yAxisWidth = yAxisTextWidth + CHART_PADDING + Y_AXIS_PADDING;
-    $yAxis.style('width', `${yAxisWidth}px`).style('height', `${gridHeight}px`);
+    $yAxis.style('width', `${yAxisWidth}px`).style('height', `${gridHeight + 2}px`);
     $root.select('.scroll').style('padding-left', `${yAxisWidth}px`);
 
     // Render line
@@ -205,6 +208,7 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
           align-items: stretch;
           max-height: 100%;
           overflow: hidden;
+          margin-top: 16px;
         }
         .axis-y {
           position: absolute;
