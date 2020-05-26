@@ -15,6 +15,7 @@ let HIDE_AFTER = 100;
 let CHART_PADDING = 10;
 let Y_AXIS_PADDING = 5;
 let X_AXIS_PADDING = 5;
+let MAX_BAR_WIDTH = 40;
 
 export const AnalysisChart = memo(function Histogram(props: Props) {
   const {data} = props;
@@ -45,7 +46,7 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
     const maxLabelChars = max(xLabels, (d) => d.length);
     const rotateLabels = maxLabelChars * 9 * xLabels.length > 400;
     const xTickLineHeight = 15;
-    const xAxisHeight = rotateLabels ? Math.min(maxLabelChars * 9 + 8, 120) : xTickLineHeight;
+    const xAxisHeight = rotateLabels ? Math.min(maxLabelChars * 6, 100) : xTickLineHeight;
 
     const gridHeight = height - xAxisHeight - X_AXIS_PADDING - CHART_PADDING;
 
@@ -54,10 +55,12 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
     ///////////////////
     const yExtent = extent(rows, (d) => d.value);
     const yScale = scaleLinear()
+      .nice()
       .domain([0, Math.ceil(yExtent[1] * 1.1)])
-      .range([gridHeight, 0]);
+      .range([0, gridHeight]);
+    const yAxisScale = yScale.copy().range([gridHeight, 0]);
 
-    const yAxisGen = axisLeft(yScale)
+    const yAxisGen = axisLeft(yAxisScale)
       .ticks(4)
       .tickSizeOuter(0)
       .tickSizeInner(0)
@@ -79,7 +82,8 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
     $yAxis.select('g.axis').attr('transform', `translate(${yAxisTextWidth}, 0)`);
 
     const yAxisWidth = yAxisTextWidth + CHART_PADDING + Y_AXIS_PADDING;
-    $yAxis.style('width', `${yAxisWidth}px`);
+    $yAxis.style('width', `${yAxisWidth}px`).style('height', `${gridHeight}px`);
+    $root.select('.scroll').style('padding-left', `${yAxisWidth}px`);
 
     // Render line
     $yAxis
@@ -126,14 +130,14 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
 
     let bandwidth = xScale.bandwidth();
     if (rotateLabels) {
-      let xTickOffset = Math.ceil(bandwidth / 2 - xTickLineHeight / 2);
-      $xTicks
-        .style('width', `${xAxisHeight}px`)
-        .style('right', (d) => `${gridWidth - xScale(d) + xTickOffset}px`);
+      let xTickOffset = Math.ceil(bandwidth / 2 + 2);
+      $xTicks.style('width', `${xAxisHeight * 1.2}px`).style('right', (d) => {
+        return `${gridWidth - xScale(d) - xTickOffset}px`;
+      });
     } else {
       $xTicks
         .style('width', `${bandwidth}px`)
-        .style('top', '0px')
+        .style('top', '4px')
         .style('left', (d) => `${xScale(d)}px`);
     }
 
@@ -149,11 +153,16 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
       )
       .call(yAxisGen.tickSizeOuter(1).tickSizeInner(-gridWidth));
 
-    /*
-
     /////////////////
     // Render Bars //
     /////////////////
+
+    let barWidth = bandwidth;
+    let xBarOffset = 0;
+    if (barWidth > MAX_BAR_WIDTH) {
+      barWidth = MAX_BAR_WIDTH;
+      xBarOffset = Math.floor((bandwidth - barWidth) / 2);
+    }
 
     $grid
       .selectAll('.bar')
@@ -163,11 +172,10 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
         (update) => update,
         (exit) => exit.remove(),
       )
-      .attr('x', 0)
-      .attr('y', (d) => xScale(d.label))
-      .attr('width', (d) => yScale(d.value))
-      .attr('height', xScale.bandwidth());
-     */
+      .attr('x', (d) => xScale(d.label) + xBarOffset)
+      .attr('y', (d) => gridHeight - yScale(d.value))
+      .attr('width', barWidth)
+      .attr('height', (d) => yScale(d.value));
   }, [rect, rows]);
 
   let nRows = data.length;
@@ -182,9 +190,11 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
           <div className="axis axis-x" ref={xAxisRef} />
         </div>
         {nRows > HIDE_AFTER && !showAll && (
-          <button className="show-all-btn" onClick={() => setShowAll(true)}>
-            Show {hiddenRows} more value{hiddenRows === 1 ? '' : 's'}
-          </button>
+          <div className="show-all">
+            <button className="show-all-btn" onClick={() => setShowAll(true)}>
+              Show {hiddenRows} more value{hiddenRows === 1 ? '' : 's'}
+            </button>
+          </div>
         )}
       </div>
       <style jsx>{`
@@ -194,14 +204,16 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
           flex-direction: row;
           align-items: stretch;
           max-height: 100%;
+          overflow: hidden;
         }
         .axis-y {
-          height: 100%;
+          position: absolute;
+          background: #fff;
           min-width: 10px;
           color: var(--n4);
-          flex: 0 0 auto;
           padding: 0 5px 0 10px;
           overflow: visible;
+          z-index: 2;
         }
         .axis-y :global(.domain),
         .axis-y :global(.tick line) {
@@ -213,9 +225,12 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
         .scroll {
           flex: 1 1 0;
           overflow-x: auto;
+          display: flex;
+          align-items: flex-start;
         }
         .scroll-chart {
           min-width: 100%;
+          flex: 1 0 auto;
           display: flex;
           flex-direction: column;
           align-items: stretch;
@@ -245,6 +260,33 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
           transform: rotate(-45deg) translateY(-50%);
         }
 
+        .show-all {
+          width: 110px;
+          height: 90%;
+          display: flex;
+          align-items: center;
+          justify-content: stretch;
+          flex: 0 0 auto;
+        }
+        .show-all-btn {
+          border: none;
+          background: transparent;
+          color: var(--b9);
+          cursor: pointer;
+          text-align: center;
+          font-size: 14px;
+          font-weight: 600;
+          line-height: 1;
+          outline: none;
+          padding: 10px;
+          border-radius: 3px;
+          transition: 0.3s color;
+          width: 100%;
+        }
+        .show-all-btn:hover {
+          color: var(--b7);
+        }
+
         :global(.y-lines) {
           color: var(--n4);
         }
@@ -254,6 +296,7 @@ export const AnalysisChart = memo(function Histogram(props: Props) {
         }
         .grid {
           flex: 1 1 auto;
+          overflow: visible;
         }
 
         :global(.bar) {

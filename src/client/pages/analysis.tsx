@@ -195,6 +195,8 @@ export default function Analysis(props: Props) {
       });
 
       if (hasNonNullValue) {
+        // Sort by greatest value first (TODO only if x-axis is text)
+        groupedByXArray.sort((a, b) => b.value - a.value);
         final.push({key: facetKey, values: groupedByXArray});
       }
     });
