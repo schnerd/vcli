@@ -1,8 +1,8 @@
-import {select} from 'd3-selection';
-import {scaleLinear, scaleBand} from 'd3-scale';
 import {extent, max} from 'd3-array';
-import {axisTop, axisLeft} from 'd3-axis';
-import {useRef, memo, useEffect, useState, useMemo} from 'react';
+import {axisTop} from 'd3-axis';
+import {scaleBand, scaleLinear} from 'd3-scale';
+import {select} from 'd3-selection';
+import {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {DataPoint} from '../types';
 import {formatNumNice} from '../utils/format';
 import {useRenderOnResize} from './use-render-on-resize';
@@ -11,9 +11,9 @@ interface Props {
   data: DataPoint[];
 }
 
-let HIDE_AFTER = 100;
+const HIDE_AFTER = 100;
 
-export const OverviewHistogram = memo(function _Histogram(props: Props) {
+export const OverviewHistogram = memo(function (props: Props) {
   const {data} = props;
 
   const [showAll, setShowAll] = useState(false);
@@ -29,12 +29,11 @@ export const OverviewHistogram = memo(function _Histogram(props: Props) {
   }, [data, showAll]);
 
   useEffect(() => {
-    const $root = select(rootRef.current);
     const $xAxis = select(xAxisRef.current);
     const $yAxis = select(yAxisRef.current);
     const $grid = select(gridRef.current);
 
-    let elRect = rect || (rootRef.current as HTMLElement).getBoundingClientRect();
+    const elRect = rect || (rootRef.current as HTMLElement).getBoundingClientRect();
     const width = elRect.width;
     const height = elRect.height;
 
@@ -61,9 +60,7 @@ export const OverviewHistogram = memo(function _Histogram(props: Props) {
       .paddingInner(0.1)
       .paddingOuter(0.1);
 
-    ///////////////////
-    // Render Y-axis //
-    ///////////////////
+    /* Render Y-axis */
     const yAxisGen = axisTop(yScale)
       .ticks(4)
       .tickSizeOuter(0)
@@ -76,7 +73,7 @@ export const OverviewHistogram = memo(function _Histogram(props: Props) {
       .data([rows])
       .join(
         (enter) => {
-          let sel = enter.append('g').classed('axis', true);
+          const sel = enter.append('g').classed('axis', true);
           enter
             .append('line')
             .classed('y-line', true)
@@ -93,11 +90,9 @@ export const OverviewHistogram = memo(function _Histogram(props: Props) {
       .call(yAxisGen)
       .attr('transform', `translate(${xAxisWidth},${yAxisHeight})`);
 
-    ///////////////////
-    // Render X-axis //
-    ///////////////////
+    /* Render X-axis */
 
-    let xTickOffset = Math.ceil(xScale.bandwidth() / 2 - xTickHeight / 2);
+    const xTickOffset = Math.ceil(xScale.bandwidth() / 2 - xTickHeight / 2);
     $xAxis.style('width', `${xAxisWidth}px`).style('height', `${gridHeight}px`);
     $xAxis
       .selectAll('.x-tick')

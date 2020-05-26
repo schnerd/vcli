@@ -1,7 +1,6 @@
 import sampleSize from 'lodash/sampleSize';
 export type DataRow = Array<string | number>;
 type Data = Array<DataRow>;
-export type Stats = Record<string, number>;
 
 export const NULL = 'NULL';
 
@@ -11,15 +10,15 @@ export enum DataTypes {
   text,
 }
 
-let DATE_TIME_RE = /^(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?/;
-let DATE_SIMPLE_RE = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+const DATE_TIME_RE = /^(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?/;
+const DATE_SIMPLE_RE = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
 // let NUM_RE = /^[$|£]?((\d+,)*\d+)(\.\d*)?$/;
-let SAMPLE_SIZE = 100;
+const SAMPLE_SIZE = 100;
 
 export default class DataContainer {
   private header: string[];
   private rows: Data;
-  private count: number = 0;
+  private count = 0;
 
   private _didDetection = false;
   private types: DataTypes[] = [];

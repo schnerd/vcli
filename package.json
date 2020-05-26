@@ -44,6 +44,7 @@
     "eslint-config-oclif-typescript": "^0.1",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-prettier": "^3.1.3",
+    "eslint-plugin-react-hooks": "^4.0.3",
     "prettier": "^2.0.5",
     "ts-node": "^8",
     "typescript": "^3.3"
@@ -66,7 +67,8 @@
   },
   "repository": "schnerd/vcli",
   "scripts": {
-    "posttest": "eslint . --ext .ts --config .eslintrc",
+    "lint": "eslint . --ext .ts --config .eslintrc",
+    "posttest": "npm lint",
     "cli-prepack": "rm -rf lib && tsc -b && oclif-dev readme",
     "cli-test": "echo NO TESTS",
     "cli-version": "oclif-dev readme && git add README.md",

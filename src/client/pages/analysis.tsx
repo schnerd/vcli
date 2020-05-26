@@ -121,7 +121,7 @@ export default function Analysis(props: Props) {
     if (facet === null) {
       return {'': rows};
     }
-    let ret: Record<string, DataRow[]> = {};
+    const ret: Record<string, DataRow[]> = {};
     rows.forEach((row) => {
       let facetValue = row[facet];
       if (facetValue == undefined) {
@@ -213,6 +213,19 @@ export default function Analysis(props: Props) {
     }
     return facets.slice(0, HIDE_FACETS_AFTER);
   }, [facets, showAllFacets]);
+
+  const configMeta = useMemo(() => {
+    return {
+      x: {
+        index: x,
+        type: types[x],
+      },
+      y: {
+        index: y,
+        type: types[y],
+      },
+    };
+  }, [x, y]);
 
   return (
     <>

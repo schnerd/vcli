@@ -1,4 +1,3 @@
-import clsx from 'clsx';
 import {DataPoint} from '../types';
 import {AnalysisChart} from './analysis-chart';
 
