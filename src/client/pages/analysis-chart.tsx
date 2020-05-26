@@ -3,12 +3,13 @@ import {axisLeft} from 'd3-axis';
 import {scaleBand, scaleLinear} from 'd3-scale';
 import {select} from 'd3-selection';
 import {memo, useEffect, useMemo, useRef, useState} from 'react';
-import {DataPoint} from '../types';
+import {ChartFieldsMeta, DataPoint} from '../types';
 import {formatNumNice} from '../utils/format';
 import {useRenderOnResize} from './use-render-on-resize';
 
 interface Props {
   data: DataPoint[];
+  fields: ChartFieldsMeta;
 }
 
 const HIDE_AFTER = 100;

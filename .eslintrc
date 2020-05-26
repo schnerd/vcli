@@ -12,6 +12,8 @@
     "lines-between-class-members": "off",
     "eqeqeq": "off",
     "react/react-in-jsx-scope": "off",
-    "@typescript-eslint/no-empty-interface": "off"
+    "@typescript-eslint/no-empty-interface": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
   }
 }

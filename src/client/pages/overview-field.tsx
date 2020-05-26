@@ -1,7 +1,8 @@
 import {bin, quantileSorted} from 'd3-array';
 import {useMemo} from 'react';
+import {DataTypes} from '../types';
 import {formatNumNice} from '../utils/format';
-import DataContainer, {DataTypes, NULL} from './data-container';
+import DataContainer, {NULL} from './data-container';
 import {OverviewHistogram} from './overview-histogram';
 
 interface Props {

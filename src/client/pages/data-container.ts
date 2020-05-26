@@ -1,14 +1,10 @@
 import sampleSize from 'lodash/sampleSize';
+import {DataTypes} from '../types';
+
 export type DataRow = Array<string | number>;
 type Data = Array<DataRow>;
 
 export const NULL = 'NULL';
-
-export enum DataTypes {
-  date,
-  num,
-  text,
-}
 
 const DATE_TIME_RE = /^(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?/;
 const DATE_SIMPLE_RE = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;

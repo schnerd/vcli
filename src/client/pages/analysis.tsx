@@ -2,7 +2,7 @@ import {max, mean, median, min, quantile, sum} from 'd3-array';
 import {useRouter} from 'next/router';
 import {useCallback, useMemo, useState} from 'react';
 import Select, {ValueType} from 'react-select';
-import {DataPoint} from '../types';
+import {ChartFieldsMeta, DataPoint, DataTypes} from '../types';
 import AnalysisFacet from './analysis-facet';
 import DataContainer, {DataRow, NULL} from './data-container';
 import {FieldSelect, FieldSelectOption, selectComponents, selectTheme} from './field-select';
@@ -70,6 +70,8 @@ const AGG_OPTIONS: AggOption[] = [
 
 const HIDE_FACETS_AFTER = 50;
 
+const noNumOptionsMessage = () => 'No numeric fields found';
+
 export default function Analysis(props: Props) {
   const {data} = props;
   const types = data.getTypes();
@@ -115,6 +117,10 @@ export default function Analysis(props: Props) {
       },
     );
   }, [header, types]);
+
+  const numFieldOptions = useMemo((): FieldSelectOption[] => {
+    return allFieldOptions.filter((v) => v.type === DataTypes.num);
+  }, [allFieldOptions]);
 
   const facetedRows: RowsGroupedByFacet = useMemo(() => {
     if (facet === null) {
@@ -214,7 +220,7 @@ export default function Analysis(props: Props) {
     return facets.slice(0, HIDE_FACETS_AFTER);
   }, [facets, showAllFacets]);
 
-  const configMeta = useMemo(() => {
+  const fieldsMeta = useMemo((): ChartFieldsMeta => {
     return {
       x: {
         index: x,
@@ -225,7 +231,7 @@ export default function Analysis(props: Props) {
         type: types[y],
       },
     };
-  }, [x, y]);
+  }, [x, y, types]);
 
   return (
     <>
@@ -243,8 +249,12 @@ export default function Analysis(props: Props) {
             <div className="config-name">Y-Axis</div>
             <div className="config-control">
               <div className="field-select-wrapper">
-                {/* TODO only allow numeric fields for y axis */}
-                <FieldSelect options={allFieldOptions} value={y} onChange={onChangeY} />
+                <FieldSelect
+                  options={numFieldOptions}
+                  value={y}
+                  onChange={onChangeY}
+                  noOptionsMessage={noNumOptionsMessage}
+                />
               </div>
               {shouldShowAgg && (
                 <div className="agg-select-wrapper">
@@ -273,13 +283,20 @@ export default function Analysis(props: Props) {
           {facetsShown ? (
             facet === null ? (
               <div className="charts-single">
-                <AnalysisFacet data={facetsShown[0].values} />
+                <AnalysisFacet fields={fieldsMeta} data={facetsShown[0].values} />
               </div>
             ) : (
               <>
                 <div className="charts-grid">
                   {facetsShown.map((f) => {
-                    return <AnalysisFacet key={f.key} facet={f.key} data={f.values} />;
+                    return (
+                      <AnalysisFacet
+                        key={f.key}
+                        facet={f.key}
+                        fields={fieldsMeta}
+                        data={f.values}
+                      />
+                    );
                   })}
                 </div>
                 {!showAllFacets && nFacets > HIDE_FACETS_AFTER && (
@@ -290,7 +307,17 @@ export default function Analysis(props: Props) {
               </>
             )
           ) : (
-            <div />
+            <div className="intro">
+              <svg width="17" height="15" xmlns="http://www.w3.org/2000/svg">
+                <g fill="none">
+                  <path
+                    fill="currentColor"
+                    d="M12 6l-1.42 1.42L7 3.83V13h10v2H5V3.83L1.42 7.42 0 6l6-6z"
+                  />
+                </g>
+              </svg>
+              <div className="intro-text">Select some fields to begin analysis</div>
+            </div>
           )}
         </div>
       </div>
@@ -302,6 +329,9 @@ export default function Analysis(props: Props) {
         .config {
           display: flex;
           align-items: flex-start;
+          position: relative;
+          /* Select dropdown should appear above charts */
+          z-index: 3;
         }
         .config-option {
           flex: 0 0 auto;
@@ -352,6 +382,17 @@ export default function Analysis(props: Props) {
         }
         .show-more-facets-btn:hover {
           color: var(--b7);
+        }
+
+        .intro {
+          padding: 8px 10px;
+          display: flex;
+          align-items: flex-start;
+        }
+        .intro-text {
+          margin: 4px 8px;
+          font-weight: 500;
+          font-size: 16px;
         }
       `}</style>
     </>

@@ -1,6 +1,6 @@
 import {memo, useCallback} from 'react';
 import Select, {Theme, ValueType} from 'react-select';
-import {DataTypes} from './data-container';
+import {DataTypes} from '../types';
 import {useSelectOption} from './use-select-option';
 
 export interface FieldSelectOption {
@@ -24,13 +24,14 @@ export const selectComponents = {
 };
 
 interface Props {
+  noOptionsMessage?: () => string;
   onChange: (value: number) => void;
   options: FieldSelectOption[];
   value: number;
 }
 
 export const FieldSelect = memo(function (props: Props) {
-  const {onChange, options, value} = props;
+  const {noOptionsMessage, onChange, options, value} = props;
 
   const valueOption = useSelectOption(options, value);
   const handleChange = useCallback(
@@ -50,6 +51,7 @@ export const FieldSelect = memo(function (props: Props) {
       theme={selectTheme}
       components={selectComponents}
       onChange={handleChange}
+      noOptionsMessage={noOptionsMessage}
     />
   );
 });
