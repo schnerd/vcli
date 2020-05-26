@@ -36,7 +36,6 @@ export default function OverviewField(props: Props) {
     let p95 = null;
     let nulls = 0;
     const isNum = type === DataTypes.num;
-    const isDate = type === DataTypes.date;
 
     // First collect & count unique values (detect  min/max at the same time)
     const uniqueCounts = {};

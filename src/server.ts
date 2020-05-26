@@ -46,8 +46,8 @@ export async function startServer(opts: ServerOptions) {
               cast_date: false,
             }),
           )
-          .on('error', (err) => {
-            reject(err);
+          .on('error', (error) => {
+            reject(error);
           })
           .on('data', (row) => {
             data.push(row);
@@ -57,8 +57,8 @@ export async function startServer(opts: ServerOptions) {
           });
       });
       res.json(data);
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      next(error);
     }
   });
 

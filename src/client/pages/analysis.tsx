@@ -1,5 +1,4 @@
 import {max, mean, median, min, quantile, sum} from 'd3-array';
-import mapValues from 'lodash/mapValues';
 import {useRouter} from 'next/router';
 import {useCallback, useMemo, useState} from 'react';
 import Select, {ValueType} from 'react-select';
@@ -152,6 +151,7 @@ export default function Analysis(props: Props) {
       // Aggregate rows by x-value
       rows.forEach((row) => {
         const xValue = row[x];
+        // eslint-disable-next-line no-eq-null
         if (xValue == null) {
           return;
         }
@@ -271,7 +271,11 @@ export default function Analysis(props: Props) {
         </div>
         <div className="charts">
           {facetsShown ? (
-            facet != null ? (
+            facet === null ? (
+              <div className="charts-single">
+                <AnalysisFacet data={facetsShown[0].values} />
+              </div>
+            ) : (
               <>
                 <div className="charts-grid">
                   {facetsShown.map((f) => {
@@ -284,10 +288,6 @@ export default function Analysis(props: Props) {
                   </button>
                 )}
               </>
-            ) : (
-              <div className="charts-single">
-                <AnalysisFacet data={facetsShown[0].values} />
-              </div>
             )
           ) : (
             <div />

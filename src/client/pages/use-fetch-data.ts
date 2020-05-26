@@ -13,9 +13,9 @@ export function useFetchData() {
         setData(new DataContainer(res));
         setIsLoading(false);
       })
-      .catch((err) => {
+      .catch((error) => {
         setIsLoading(false);
-        setError(err);
+        setError(error);
       });
   }, []);
 

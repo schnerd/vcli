@@ -2,6 +2,7 @@
   "extends": [
     "oclif",
     "oclif-typescript",
+    "plugin:react/recommended",
     "plugin:prettier/recommended"
   ],
   "plugins": [
@@ -9,6 +10,8 @@
   ],
   "rules": {
     "lines-between-class-members": "off",
-    "eqeqeq": "off"
+    "eqeqeq": "off",
+    "react/react-in-jsx-scope": "off",
+    "@typescript-eslint/no-empty-interface": "off"
   }
 }

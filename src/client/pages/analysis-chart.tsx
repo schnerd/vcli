@@ -17,7 +17,7 @@ const Y_AXIS_PADDING = 5;
 const X_AXIS_PADDING = 5;
 const MAX_BAR_WIDTH = 40;
 
-export const AnalysisChart = memo(function Histogram(props: Props) {
+export const AnalysisChart = memo(function (props: Props) {
   const {data} = props;
 
   const [showAll, setShowAll] = useState(false);

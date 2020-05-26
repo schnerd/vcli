@@ -5,12 +5,6 @@ interface Props {
   data: DataContainer;
 }
 
-const TYPE_LABELS: Record<DataTypes, string> = {
-  [DataTypes.date]: 'Date',
-  [DataTypes.num]: 'Num',
-  [DataTypes.text]: 'Text',
-};
-
 export default function Overview(props: Props) {
   const {data} = props;
   const header = data.getHeader();

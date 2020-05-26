@@ -29,7 +29,7 @@ interface Props {
   value: number;
 }
 
-export const FieldSelect = memo(function FieldSelect(props: Props) {
+export const FieldSelect = memo(function (props: Props) {
   const {onChange, options, value} = props;
 
   const valueOption = useSelectOption(options, value);
