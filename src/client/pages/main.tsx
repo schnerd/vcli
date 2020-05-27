@@ -1,8 +1,9 @@
 import clsx from 'clsx';
 import {useCallback, useState} from 'react';
+import {useSetRecoilState} from 'recoil';
 import Analysis from './analysis';
 import Overview from './overview';
-import {Tooltip, TooltipConfig} from './tooltip';
+import {Tooltip, tooltipVisibleState} from './tooltip';
 import {useFetchData} from './use-fetch-data';
 import {VcliLogo} from './vcli-logo';
 
@@ -14,7 +15,6 @@ enum Page {
 export default function Main() {
   const {data, isLoading, error} = useFetchData();
   const [page, setPage] = useState(Page.overview);
-  const [tooltipConfig, setTooltipConfig] = useState<TooltipConfig | null>(null);
 
   let body = null;
   if (isLoading) {
@@ -25,9 +25,18 @@ export default function Main() {
     if (page === Page.overview) {
       body = <Overview data={data} />;
     } else {
-      body = <Analysis data={data} setTooltipConfig={setTooltipConfig} />;
+      body = <Analysis data={data} />;
     }
   }
+
+  const setTooltipVisible = useSetRecoilState(tooltipVisibleState);
+  const handleSetPage = useCallback(
+    (page: Page) => {
+      setPage(page);
+      setTooltipVisible(false);
+    },
+    [setTooltipVisible],
+  );
 
   return (
     <div className="container">
@@ -41,20 +50,20 @@ export default function Main() {
         <div className="nav">
           <button
             className={clsx('nav-item', page === Page.overview && 'nav-sel')}
-            onClick={() => setPage(Page.overview)}
+            onClick={() => handleSetPage(Page.overview)}
           >
             Overview
           </button>
           <button
             className={clsx('nav-item', page === Page.analysis && 'nav-sel')}
-            onClick={() => setPage(Page.analysis)}
+            onClick={() => handleSetPage(Page.analysis)}
           >
             Analysis
           </button>
         </div>
       </header>
       <main>{body}</main>
-      <Tooltip config={tooltipConfig} />
+      <Tooltip />
 
       <style jsx>{`
         .container {

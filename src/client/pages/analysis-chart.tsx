@@ -3,15 +3,16 @@ import {axisBottom, axisLeft} from 'd3-axis';
 import {scaleBand, ScaleBand, scaleLinear, ScaleTime, scaleTime} from 'd3-scale';
 import {event as d3Event, select, selectAll, Selection as D3Selection} from 'd3-selection';
 import {memo, useEffect, useMemo, useRef, useState} from 'react';
+import {useSetRecoilState} from 'recoil';
+
 import {ChartFieldsMeta, DataPoint, DataTypes, DateAggType} from '../types';
 import {formatNum, formatNumNice} from '../utils/format';
-import {TooltipConfig} from './tooltip';
+import {tooltipConfigState, tooltipVisibleState} from './tooltip';
 import {useRenderOnResize} from './use-render-on-resize';
 
 interface Props {
   data: DataPoint[];
   fields: ChartFieldsMeta;
-  setTooltipConfig: (val: TooltipConfig | null) => void;
 }
 
 const HIDE_AFTER = 100;
@@ -262,7 +263,7 @@ class DateXAxis implements XAxis {
 }
 
 export const AnalysisChart = memo(function (props: Props) {
-  const {data, fields, setTooltipConfig} = props;
+  const {data, fields} = props;
 
   const [showAll, setShowAll] = useState(false);
 
@@ -278,6 +279,9 @@ export const AnalysisChart = memo(function (props: Props) {
 
   const xIsDate = fields.x.type === DataTypes.date;
   const dateAgg = fields.x.dateAgg as DateAggType;
+
+  const setTooltipConfig = useSetRecoilState(tooltipConfigState);
+  const setTooltipVisible = useSetRecoilState(tooltipVisibleState);
 
   useEffect(() => {
     const $root = select(rootRef.current);
@@ -407,6 +411,7 @@ export const AnalysisChart = memo(function (props: Props) {
         }
 
         clearTimeout(tooltipTimerId);
+        setTooltipVisible(true);
         setTooltipConfig({
           evt: d3Event,
           title,
@@ -415,7 +420,7 @@ export const AnalysisChart = memo(function (props: Props) {
       })
       .on('mouseleave.tt', () => {
         tooltipTimerId = setTimeout(() => {
-          setTooltipConfig(null);
+          setTooltipVisible(false);
         }, 200);
       });
 
@@ -423,7 +428,7 @@ export const AnalysisChart = memo(function (props: Props) {
     if (xIsDate) {
       ($root.select('.scroll').node() as HTMLElement).scrollTo(1e9, 0);
     }
-  }, [rect, rows, xIsDate, dateAgg, setTooltipConfig]);
+  }, [rect, rows, xIsDate, dateAgg, setTooltipConfig, setTooltipVisible]);
 
   const nRows = data.length;
   const hiddenRows = nRows - HIDE_AFTER;

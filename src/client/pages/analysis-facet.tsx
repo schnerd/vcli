@@ -1,23 +1,21 @@
 import {ChartFieldsMeta, DataPoint} from '../types';
 import {AnalysisChart} from './analysis-chart';
-import {TooltipConfig} from './tooltip';
 
 interface Props {
   data: DataPoint[];
   facet?: string;
   fields: ChartFieldsMeta;
-  setTooltipConfig: (val: TooltipConfig | null) => void;
 }
 
 export default function AnalysisFacet(props: Props) {
-  const {facet, fields, data, setTooltipConfig} = props;
+  const {facet, fields, data} = props;
 
   return (
     <>
       <div className="root">
         {facet != undefined && <h3 className="name">{facet || '[empty]'}</h3>}
         <div className="chart">
-          <AnalysisChart data={data} fields={fields} setTooltipConfig={setTooltipConfig} />
+          <AnalysisChart data={data} fields={fields} />
         </div>
       </div>
       <style jsx>{`

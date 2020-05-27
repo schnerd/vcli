@@ -2,16 +2,15 @@ import {max, mean, median, min, quantile, sum} from 'd3-array';
 import {useRouter} from 'next/router';
 import {useCallback, useMemo, useState} from 'react';
 import Select, {ValueType} from 'react-select';
+
 import {ChartFieldsMeta, DataPoint, DataTypes, DateAggType, NumAggType} from '../types';
 import AnalysisFacet from './analysis-facet';
 import DataContainer, {DataRow, NULL} from './data-container';
 import {FieldSelect, FieldSelectOption, selectComponents, selectTheme} from './field-select';
-import {TooltipConfig} from './tooltip';
 import {useSelectOption} from './use-select-option';
 
 interface Props {
   data: DataContainer;
-  setTooltipConfig: (val: TooltipConfig | null) => void;
 }
 
 type RowsGroupedByFacet = Record<string, DataRow[]>;
@@ -83,7 +82,7 @@ const HIDE_FACETS_AFTER = 50;
 const noNumOptionsMessage = () => 'No numeric fields found';
 
 export default function Analysis(props: Props) {
-  const {data, setTooltipConfig} = props;
+  const {data} = props;
   const types = data.getTypes();
   const header = data.getHeader();
   const rows = data.getRows();
@@ -158,8 +157,6 @@ export default function Analysis(props: Props) {
     return ret;
   }, [rows, facet]);
 
-  let shouldShowYAgg = yAgg !== null && yAgg !== NumAggType.first;
-
   const facets: FacetObj[] | null = useMemo(() => {
     if (x === null || y === null) {
       return null;
@@ -211,9 +208,6 @@ export default function Analysis(props: Props) {
       const groupedByXArray = [];
       Object.keys(groupedByX).forEach((xKey) => {
         const xRows = groupedByX[xKey];
-        if (!shouldShowYAgg && xRows.length > 1) {
-          shouldShowYAgg = true;
-        }
         const value = (function () {
           switch (yAgg) {
             case NumAggType.min:
@@ -315,7 +309,7 @@ export default function Analysis(props: Props) {
                   noOptionsMessage={noNumOptionsMessage}
                 />
               </div>
-              {shouldShowYAgg && (
+              {y !== null && (
                 <div className="agg-select-wrapper">
                   <Select
                     options={NUM_AGG_OPTIONS}
@@ -342,11 +336,7 @@ export default function Analysis(props: Props) {
           {facetsShown ? (
             facet === null ? (
               <div className="charts-single">
-                <AnalysisFacet
-                  fields={fieldsMeta}
-                  data={facetsShown[0].values}
-                  setTooltipConfig={setTooltipConfig}
-                />
+                <AnalysisFacet fields={fieldsMeta} data={facetsShown[0].values} />
               </div>
             ) : (
               <>
@@ -358,7 +348,6 @@ export default function Analysis(props: Props) {
                         facet={f.key}
                         fields={fieldsMeta}
                         data={f.values}
-                        setTooltipConfig={setTooltipConfig}
                       />
                     );
                   })}

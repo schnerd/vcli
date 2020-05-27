@@ -1,5 +1,16 @@
 import clsx from 'clsx';
 import {useMemo} from 'react';
+import {atom, useRecoilValue} from 'recoil';
+
+export const tooltipConfigState = atom({
+  key: 'tooltipConfigState',
+  default: null,
+});
+
+export const tooltipVisibleState = atom({
+  key: 'tooltipVisibleState',
+  default: false,
+});
 
 export interface TooltipConfig {
   evt: MouseEvent;
@@ -7,13 +18,9 @@ export interface TooltipConfig {
   value: string;
 }
 
-interface Props {
-  config: TooltipConfig | null;
-}
-
-export function Tooltip(props: Props) {
-  const {config: configMaybe} = props;
-  const config: Partial<TooltipConfig> = configMaybe || {};
+export function Tooltip() {
+  const config = useRecoilValue(tooltipConfigState) || {};
+  const isVisible = useRecoilValue(tooltipVisibleState);
 
   const rootStyle = useMemo(() => {
     const {evt} = config;
@@ -49,7 +56,7 @@ export function Tooltip(props: Props) {
 
   return (
     <>
-      <div className={clsx('root', configMaybe && 'visible')} style={rootStyle}>
+      <div className={clsx('root', isVisible && 'visible')} style={rootStyle}>
         <div className="title">{config.title || ''}</div>
         <div className="value">{config.value || ''}</div>
       </div>
