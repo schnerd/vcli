@@ -1,3 +1,4 @@
+// @ts-ignore
 import {bin, quantileSorted} from 'd3-array';
 import {useMemo} from 'react';
 import {DataTypes} from '../types';

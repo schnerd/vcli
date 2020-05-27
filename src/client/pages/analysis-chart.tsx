@@ -1,7 +1,7 @@
 import {extent, max} from 'd3-array';
 import {axisBottom, axisLeft} from 'd3-axis';
-import {scaleBand, ScaleBand, scaleTime, ScaleTime, scaleLinear} from 'd3-scale';
-import {select, selectAll, Selection as D3Selection} from 'd3-selection';
+import {scaleBand, ScaleBand, scaleLinear, ScaleTime, scaleTime} from 'd3-scale';
+import {event as d3Event, select, selectAll, Selection as D3Selection} from 'd3-selection';
 import {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {ChartFieldsMeta, DataPoint, DataTypes, DateAggType} from '../types';
 import {formatNumNice} from '../utils/format';
@@ -226,10 +226,10 @@ class DateXAxis implements XAxis {
       .range([Math.floor(scalePadding), Math.floor(this.gridWidth - scalePadding)]);
 
     const axis = axisBottom(this.scale)
-      .ticks(5)
       .tickSizeOuter(0)
       .tickSizeInner(4)
       .tickPadding(4)
+      .ticks(5)
       .tickFormat((d: Date) => {
         if (d.getDate() !== 1) {
           return d.toLocaleString('default', {month: 'short', day: 'numeric'});
@@ -528,6 +528,9 @@ export const AnalysisChart = memo(function (props: Props) {
 
         :global(.bar) {
           fill: var(--b9);
+        }
+        :global(.bar:hover) {
+          fill: var(--b8);
         }
       `}</style>
     </div>

@@ -13,6 +13,7 @@
     "eqeqeq": "off",
     "react/react-in-jsx-scope": "off",
     "@typescript-eslint/no-empty-interface": "off",
+    "@typescript-eslint/ban-ts-ignore": "off",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn"
   }
