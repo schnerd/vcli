@@ -1,7 +1,7 @@
 import {extent, max} from 'd3-array';
-import {axisLeft} from 'd3-axis';
-import {scaleBand, scaleLinear, ScaleBand} from 'd3-scale';
-import {select, Selection as D3Selection} from 'd3-selection';
+import {axisBottom, axisLeft} from 'd3-axis';
+import {scaleBand, ScaleBand, scaleTime, ScaleTime, scaleLinear} from 'd3-scale';
+import {select, selectAll, Selection as D3Selection} from 'd3-selection';
 import {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {ChartFieldsMeta, DataPoint, DataTypes, DateAggType} from '../types';
 import {formatNumNice} from '../utils/format';
@@ -17,6 +17,10 @@ const CHART_PADDING = 10;
 const Y_AXIS_PADDING = 5;
 const X_AXIS_PADDING = 5;
 const MAX_BAR_WIDTH = 40;
+const DATE_MIN_BAR_WIDTH = 10;
+const DATE_BAR_PADDING = 2;
+
+type Selection = D3Selection<any, any, any, any>;
 
 interface XAxis {
   getBarWidth(): number;
@@ -26,8 +30,6 @@ interface XAxis {
   setMinWidth(value: number): void;
   render();
 }
-
-type Selection = D3Selection<any, any, any, any>;
 
 class OrdinalXAxis implements XAxis {
   $xAxis: Selection;
@@ -98,11 +100,24 @@ class OrdinalXAxis implements XAxis {
       this.barOffset = Math.floor((bandwidth - this.barWidth) / 2);
     }
 
-    this.$xAxis
+    // Remove anything that is not our date axis
+    selectAll(this.$xAxis.node().childNodes).filter(':not(.axis-x-ordinal)').remove();
+
+    this.$xAxis.style('width', `${this.gridWidth}px`).style('height', `${this.axisHeight}px`);
+
+    const $xAxisOrdinal = this.$xAxis
+      .selectAll('.axis-x-ordinal')
+      .data([1])
+      .join(
+        (enter) => enter.append('div').classed('axis-x-ordinal', true),
+        (update) => update,
+        (exit) => exit.remove(),
+      )
       .classed('x-rotate', this.rotateLabels)
       .style('width', `${this.gridWidth}px`)
       .style('height', `${this.axisHeight}px`);
-    const $xTicks = this.$xAxis
+
+    const $xTicks = $xAxisOrdinal
       .selectAll('.x-tick')
       .data(this.labels)
       .join(
@@ -128,6 +143,118 @@ class OrdinalXAxis implements XAxis {
         .style('left', (d) => `${this.scale(d)}px`)
         .style('right', null);
     }
+  }
+}
+
+class DateXAxis implements XAxis {
+  rows: DataPoint[];
+  extent: [Date, Date];
+  $xAxis: Selection;
+  dateAgg: DateAggType;
+  numBars: number;
+  axisHeight = 15;
+  minWidth: number = null;
+  gridWidth = 0;
+  barWidth = 0;
+  bandWidth = 0;
+  barOffset = 0;
+  scale!: ScaleTime<any, any>;
+
+  constructor(args: {rows: DataPoint[]; $xAxis: Selection; dateAgg: DateAggType}) {
+    const {rows, $xAxis, dateAgg} = args;
+    this.rows = rows;
+    this.dateAgg = dateAgg;
+    this.$xAxis = $xAxis;
+    this.extent = extent(rows, (d) => d.label as Date);
+
+    const [dMin, dMax] = this.extent;
+    if (dateAgg === DateAggType.year) {
+      this.numBars = dMin.getFullYear() - dMax.getFullYear() + 1;
+    } else if (dateAgg === DateAggType.month) {
+      this.numBars =
+        (dMax.getFullYear() - dMin.getFullYear()) * 12 + dMax.getMonth() - dMin.getMonth() + 1;
+    } else {
+      const oneDay = 24 * 60 * 60 * 1000;
+      this.numBars = Math.round((dMax.getTime() - dMin.getTime()) / oneDay) + 1;
+    }
+  }
+
+  getBarWidth() {
+    return this.barWidth;
+  }
+
+  getBarX = (d: DataPoint) => {
+    return this.scale(d.label as any) - this.barWidth / 2;
+  };
+
+  getGridWidth() {
+    return this.gridWidth;
+  }
+
+  getHeight() {
+    return this.axisHeight;
+  }
+
+  setMinWidth(value: number) {
+    this.minWidth = value;
+  }
+
+  render() {
+    if (this.minWidth === null) {
+      throw new Error('Invariant: min width not set before rendering');
+    }
+
+    this.bandWidth = (this.minWidth - DATE_BAR_PADDING) / this.numBars - DATE_BAR_PADDING;
+    // If our bars are squeezed too tightly, we want scrolling
+    if (this.bandWidth < DATE_MIN_BAR_WIDTH) {
+      this.barWidth = DATE_MIN_BAR_WIDTH;
+      this.bandWidth = DATE_MIN_BAR_WIDTH;
+      this.gridWidth = DATE_BAR_PADDING + this.numBars * (DATE_MIN_BAR_WIDTH + DATE_BAR_PADDING);
+    } else {
+      this.gridWidth = this.minWidth;
+      this.barWidth = this.bandWidth;
+      // Dont let bars get too big
+      if (this.barWidth > MAX_BAR_WIDTH) {
+        this.barWidth = MAX_BAR_WIDTH;
+        this.barOffset = Math.floor((this.bandWidth - this.barWidth) / 2);
+      }
+    }
+
+    const scalePadding = DATE_BAR_PADDING + this.barWidth / 2;
+    this.scale = scaleTime()
+      .domain(this.extent)
+      .range([Math.floor(scalePadding), Math.floor(this.gridWidth - scalePadding)]);
+
+    const axis = axisBottom(this.scale)
+      .ticks(5)
+      .tickSizeOuter(0)
+      .tickSizeInner(4)
+      .tickPadding(4)
+      .tickFormat((d: Date) => {
+        if (d.getDate() !== 1) {
+          return d.toLocaleString('default', {month: 'short', day: 'numeric'});
+        }
+        if (d.getMonth() > 0) {
+          return d.toLocaleString('default', {month: 'short'});
+        }
+        return String(d.getFullYear());
+      });
+
+    // Remove anything that is not our date axis
+    selectAll(this.$xAxis.node().childNodes).filter(':not(.axis-x-date)').remove();
+
+    this.$xAxis.style('width', `${this.gridWidth}px`).style('height', `${this.axisHeight}px`);
+    this.$xAxis
+      .selectAll('.axis-x-date')
+      .data([1])
+      .join(
+        (enter) => enter.append('svg').classed('axis-x-date', true),
+        (update) => update,
+        (exit) => exit.remove(),
+      )
+      .style('width', `${this.gridWidth}px`)
+      .style('height', `${this.axisHeight}px`)
+      .call(axis);
   }
 }
 
@@ -159,7 +286,9 @@ export const AnalysisChart = memo(function (props: Props) {
     const width = elRect.width;
     const height = elRect.height;
 
-    const xAxis: XAxis = new OrdinalXAxis({rows, $xAxis});
+    const xAxis: XAxis = xIsDate
+      ? new DateXAxis({rows, $xAxis, dateAgg})
+      : new OrdinalXAxis({rows, $xAxis});
 
     const gridHeight = height - xAxis.getHeight() - X_AXIS_PADDING - CHART_PADDING;
 
@@ -258,6 +387,11 @@ export const AnalysisChart = memo(function (props: Props) {
       .attr('height', (d) => {
         return Math.abs(yScale(d.value) - yScale(0));
       });
+
+    // Scroll all the way right (latest data) for dates
+    if (xIsDate) {
+      ($root.select('.scroll').node() as HTMLElement).scrollTo(1e9, 0);
+    }
   }, [rect, rows, xIsDate, dateAgg]);
 
   const nRows = data.length;
@@ -321,9 +455,12 @@ export const AnalysisChart = memo(function (props: Props) {
         }
 
         .axis-x {
+          flex: 0 0 auto;
+          overflow: visible;
+        }
+        :global(.axis-x-ordinal) {
           position: relative;
           overflow: visible;
-          flex: 0 0 auto;
           padding-top: 5px;
         }
 
@@ -341,6 +478,13 @@ export const AnalysisChart = memo(function (props: Props) {
           text-align: right;
           transform-origin: center right;
           transform: rotate(-45deg) translateY(-50%);
+        }
+
+        :global(.axis-x-date) {
+          overflow: visible;
+        }
+        :global(.axis-x-date .domain) {
+          display: none;
         }
 
         .show-all {

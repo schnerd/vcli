@@ -163,7 +163,7 @@ export default function Analysis(props: Props) {
       return null;
     }
 
-    const xIsDate = types[x] === DataTypes.num;
+    const xIsDate = types[x] === DataTypes.date;
     const xIsText = types[x] === DataTypes.text;
 
     const final = [];
