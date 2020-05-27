@@ -1,4 +1,5 @@
-import {max, mean, median, min, quantile, sum} from 'd3-array';
+// @ts-ignore d3 types dont have bin()
+import {bin, max, mean, median, min, quantile, sum} from 'd3-array';
 import {useRouter} from 'next/router';
 import {useCallback, useMemo, useState} from 'react';
 import Select, {ValueType} from 'react-select';
@@ -162,6 +163,7 @@ export default function Analysis(props: Props) {
       return null;
     }
 
+    const xIsNum = types[x] === DataTypes.num;
     const xIsDate = types[x] === DataTypes.date;
     const xIsText = types[x] === DataTypes.text;
 
@@ -170,8 +172,9 @@ export default function Analysis(props: Props) {
 
     Object.keys(facetedRows).forEach((facetKey) => {
       const rows = facetedRows[facetKey];
-      const groupedByX = {};
+      let groupedByX = {};
       let hasNonNullValue = false;
+
       // Aggregate rows by x-value
       rows.forEach((row) => {
         let xValue = row[x];
@@ -198,12 +201,20 @@ export default function Analysis(props: Props) {
 
         hasNonNullValue = true;
 
-        // TODO binning for nums/dates?
         if (!groupedByX[xValue]) {
           groupedByX[xValue] = [];
         }
         groupedByX[xValue].push(row);
       });
+
+      // Handle binning of numeric x-axis values
+      if (xIsNum && Object.keys(groupedByX).length > 10 && hasNonNullValue) {
+        const binned = bin().value(yAccessor).thresholds(10)(rows);
+        groupedByX = {};
+        binned.forEach((bin) => {
+          groupedByX[`${bin.x0} - ${bin.x1}`] = bin;
+        });
+      }
 
       const groupedByXArray = [];
       Object.keys(groupedByX).forEach((xKey) => {

@@ -2,6 +2,7 @@ import {extent, max} from 'd3-array';
 import {axisBottom, axisLeft} from 'd3-axis';
 import {scaleBand, ScaleBand, scaleLinear, ScaleTime, scaleTime} from 'd3-scale';
 import {event as d3Event, select, selectAll, Selection as D3Selection} from 'd3-selection';
+import {timeDay, timeMonth, timeYear} from 'd3-time';
 import {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {useSetRecoilState} from 'recoil';
 
@@ -229,11 +230,23 @@ class DateXAxis implements XAxis {
       .domain(this.extent)
       .range([Math.floor(scalePadding), Math.floor(this.gridWidth - scalePadding)]);
 
+    const canShowEveryTick = this.bandWidth > 85;
+    let interval;
+    if (this.dateAgg === DateAggType.year) {
+      interval = canShowEveryTick ? timeYear : timeYear.filter((d) => d.getFullYear() % 10 === 0);
+    } else if (this.dateAgg === DateAggType.month) {
+      interval = canShowEveryTick ? timeMonth : timeMonth.filter((d) => d.getMonth() % 6 === 0);
+    } else {
+      interval = canShowEveryTick
+        ? timeDay
+        : timeDay.filter((d) => d.getDate() === 1 || d.getDate() % 8 === 0);
+    }
+
     const axis = axisBottom(this.scale)
       .tickSizeOuter(0)
       .tickSizeInner(4)
       .tickPadding(4)
-      .ticks(5)
+      .ticks(interval)
       .tickFormat((d: Date) => {
         if (d.getDate() !== 1) {
           return d.toLocaleString('default', {month: 'short', day: 'numeric'});
@@ -357,7 +370,7 @@ export const AnalysisChart = memo(function (props: Props) {
       .attr('x2', yAxisTextWidth + Y_AXIS_PADDING);
 
     /* Render X-axis */
-    xAxis.setMinWidth(width - yAxisWidth);
+    xAxis.setMinWidth(width - yAxisWidth - CHART_PADDING);
     xAxis.render();
 
     const gridWidth = xAxis.getGridWidth();
@@ -488,6 +501,7 @@ export const AnalysisChart = memo(function (props: Props) {
           flex-direction: column;
           align-items: stretch;
           min-width: 0;
+          padding-right: 10px;
         }
 
         .axis-x {
