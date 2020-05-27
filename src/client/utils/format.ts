@@ -16,7 +16,7 @@ export function formatNumNice(n: number): string {
 }
 
 const addCommas = d3Format(',.0f');
-const fourSigfigs = d3Format(',.4r');
+const fourSigfigs = d3Format(',.4~r');
 
 export function formatNum(n: number): string {
   if (n > 1e4) {

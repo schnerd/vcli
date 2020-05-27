@@ -408,8 +408,7 @@ export const AnalysisChart = memo(function (props: Props) {
 
         clearTimeout(tooltipTimerId);
         setTooltipConfig({
-          x: d3Event.pageX,
-          y: d3Event.pageY,
+          evt: d3Event,
           title,
           value: formatNum(value),
         });

@@ -2,8 +2,7 @@ import clsx from 'clsx';
 import {useMemo} from 'react';
 
 export interface TooltipConfig {
-  x: number;
-  y: number;
+  evt: MouseEvent;
   title: string;
   value: string;
 }
@@ -17,12 +16,33 @@ export function Tooltip(props: Props) {
   const config: Partial<TooltipConfig> = configMaybe || {};
 
   const rootStyle = useMemo(() => {
-    const {x, y} = config;
-    if (typeof x === 'number' && typeof y === 'number') {
-      return {
-        top: `${y - 10}px`,
-        left: `${x + 10}px`,
-      };
+    const {evt} = config;
+
+    if (evt) {
+      const tooltipXSpace = 200;
+      const winWidth = window.innerWidth;
+      const winHeight = window.innerHeight;
+      const {pageX, pageY, clientY} = evt;
+
+      const styles: any = {};
+
+      let top: number;
+      if (clientY - 20 < 0) {
+        top = 10 - clientY + pageY;
+      } else if (clientY + 70 > winHeight) {
+        top = pageY - clientY + winHeight - 80;
+      } else {
+        top = pageY - 10;
+      }
+      styles.top = `${top}px`;
+
+      if (pageX + 10 + tooltipXSpace < winWidth) {
+        styles.left = `${pageX + 10}px`;
+      } else {
+        styles.right = `${winWidth - pageX + 10}px`;
+      }
+
+      return styles;
     }
     return {};
   }, [config]);
@@ -43,6 +63,7 @@ export function Tooltip(props: Props) {
           box-shadow: rgba(67, 90, 111, 0.3) 0px 0px 1px, rgba(67, 90, 111, 0.47) 0px 4px 10px -4px;
           background: #fff;
           z-index: 100;
+          max-width: 200px;
         }
         .root.visible {
           opacity: 1;
@@ -50,7 +71,6 @@ export function Tooltip(props: Props) {
         .title {
           font-size: 14px;
           line-height: 1;
-          max-width: 200px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
