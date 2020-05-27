@@ -6,10 +6,12 @@ import {ChartFieldsMeta, DataPoint, DataTypes, DateAggType, NumAggType} from '..
 import AnalysisFacet from './analysis-facet';
 import DataContainer, {DataRow, NULL} from './data-container';
 import {FieldSelect, FieldSelectOption, selectComponents, selectTheme} from './field-select';
+import {TooltipConfig} from './tooltip';
 import {useSelectOption} from './use-select-option';
 
 interface Props {
   data: DataContainer;
+  setTooltipConfig: (val: TooltipConfig | null) => void;
 }
 
 type RowsGroupedByFacet = Record<string, DataRow[]>;
@@ -81,7 +83,7 @@ const HIDE_FACETS_AFTER = 50;
 const noNumOptionsMessage = () => 'No numeric fields found';
 
 export default function Analysis(props: Props) {
-  const {data} = props;
+  const {data, setTooltipConfig} = props;
   const types = data.getTypes();
   const header = data.getHeader();
   const rows = data.getRows();
@@ -340,7 +342,11 @@ export default function Analysis(props: Props) {
           {facetsShown ? (
             facet === null ? (
               <div className="charts-single">
-                <AnalysisFacet fields={fieldsMeta} data={facetsShown[0].values} />
+                <AnalysisFacet
+                  fields={fieldsMeta}
+                  data={facetsShown[0].values}
+                  setTooltipConfig={setTooltipConfig}
+                />
               </div>
             ) : (
               <>
@@ -352,6 +358,7 @@ export default function Analysis(props: Props) {
                         facet={f.key}
                         fields={fieldsMeta}
                         data={f.values}
+                        setTooltipConfig={setTooltipConfig}
                       />
                     );
                   })}

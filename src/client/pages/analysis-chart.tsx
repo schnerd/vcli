@@ -4,12 +4,14 @@ import {scaleBand, ScaleBand, scaleLinear, ScaleTime, scaleTime} from 'd3-scale'
 import {event as d3Event, select, selectAll, Selection as D3Selection} from 'd3-selection';
 import {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {ChartFieldsMeta, DataPoint, DataTypes, DateAggType} from '../types';
-import {formatNumNice} from '../utils/format';
+import {formatNum, formatNumNice} from '../utils/format';
+import {TooltipConfig} from './tooltip';
 import {useRenderOnResize} from './use-render-on-resize';
 
 interface Props {
   data: DataPoint[];
   fields: ChartFieldsMeta;
+  setTooltipConfig: (val: TooltipConfig | null) => void;
 }
 
 const HIDE_AFTER = 100;
@@ -19,6 +21,7 @@ const X_AXIS_PADDING = 5;
 const MAX_BAR_WIDTH = 40;
 const DATE_MIN_BAR_WIDTH = 10;
 const DATE_BAR_PADDING = 2;
+let tooltipTimerId: any = null;
 
 type Selection = D3Selection<any, any, any, any>;
 
@@ -259,7 +262,7 @@ class DateXAxis implements XAxis {
 }
 
 export const AnalysisChart = memo(function (props: Props) {
-  const {data, fields} = props;
+  const {data, fields, setTooltipConfig} = props;
 
   const [showAll, setShowAll] = useState(false);
 
@@ -386,13 +389,42 @@ export const AnalysisChart = memo(function (props: Props) {
       .attr('width', xAxis.getBarWidth())
       .attr('height', (d) => {
         return Math.abs(yScale(d.value) - yScale(0));
+      })
+      .on('mouseenter.tt', (d) => {
+        const {label, value} = d;
+
+        let title: string;
+        if (label instanceof Date) {
+          if (dateAgg === DateAggType.year) {
+            title = String(label.getFullYear());
+          } else if (dateAgg === DateAggType.month) {
+            title = label.toLocaleString('default', {month: 'short'});
+          } else {
+            title = label.toLocaleString('default', {month: 'short', day: 'numeric'});
+          }
+        } else {
+          title = label;
+        }
+
+        clearTimeout(tooltipTimerId);
+        setTooltipConfig({
+          x: d3Event.pageX,
+          y: d3Event.pageY,
+          title,
+          value: formatNum(value),
+        });
+      })
+      .on('mouseleave.tt', () => {
+        tooltipTimerId = setTimeout(() => {
+          setTooltipConfig(null);
+        }, 200);
       });
 
     // Scroll all the way right (latest data) for dates
     if (xIsDate) {
       ($root.select('.scroll').node() as HTMLElement).scrollTo(1e9, 0);
     }
-  }, [rect, rows, xIsDate, dateAgg]);
+  }, [rect, rows, xIsDate, dateAgg, setTooltipConfig]);
 
   const nRows = data.length;
   const hiddenRows = nRows - HIDE_AFTER;

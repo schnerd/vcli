@@ -1,7 +1,8 @@
 import clsx from 'clsx';
-import {useState} from 'react';
+import {useCallback, useState} from 'react';
 import Analysis from './analysis';
 import Overview from './overview';
+import {Tooltip, TooltipConfig} from './tooltip';
 import {useFetchData} from './use-fetch-data';
 import {VcliLogo} from './vcli-logo';
 
@@ -13,6 +14,7 @@ enum Page {
 export default function Main() {
   const {data, isLoading, error} = useFetchData();
   const [page, setPage] = useState(Page.overview);
+  const [tooltipConfig, setTooltipConfig] = useState<TooltipConfig | null>(null);
 
   let body = null;
   if (isLoading) {
@@ -23,7 +25,7 @@ export default function Main() {
     if (page === Page.overview) {
       body = <Overview data={data} />;
     } else {
-      body = <Analysis data={data} />;
+      body = <Analysis data={data} setTooltipConfig={setTooltipConfig} />;
     }
   }
 
@@ -52,6 +54,7 @@ export default function Main() {
         </div>
       </header>
       <main>{body}</main>
+      <Tooltip config={tooltipConfig} />
 
       <style jsx>{`
         .container {
