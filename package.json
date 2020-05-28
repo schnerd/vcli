@@ -81,7 +81,7 @@
     "cli-prepack": "rm -rf lib && tsc -b && oclif-dev readme",
     "cli-test": "echo NO TESTS",
     "cli-version": "oclif-dev readme && git add README.md",
-    "client-build": "next build"
+    "client-build": "next build src/client"
   },
   "types": "lib/index.d.ts"
 }
