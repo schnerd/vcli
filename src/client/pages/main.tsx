@@ -13,7 +13,7 @@ enum Page {
 }
 
 export default function Main() {
-  const {data, isLoading, error} = useFetchData();
+  const {data, chartConfig, file, isLoading, error} = useFetchData();
   const [page, setPage] = useState(Page.overview);
 
   let body = null;
@@ -41,25 +41,29 @@ export default function Main() {
   return (
     <div className="container">
       <header>
-        <h1 className="title">
-          <span className="vcli">
+        <div className="header-items">
+          <div className="logo" title="vcli">
             <VcliLogo />
-          </span>
-          <span className="pipe">|</span>Showing data from stdin
-        </h1>
-        <div className="nav">
-          <button
-            className={clsx('nav-item', page === Page.overview && 'nav-sel')}
-            onClick={() => handleSetPage(Page.overview)}
-          >
-            Overview
-          </button>
-          <button
-            className={clsx('nav-item', page === Page.analysis && 'nav-sel')}
-            onClick={() => handleSetPage(Page.analysis)}
-          >
-            Analysis
-          </button>
+          </div>
+          <div className="pipe">|</div>
+          <div className="nav">
+            <button
+              className={clsx('nav-item', page === Page.overview && 'nav-sel')}
+              onClick={() => handleSetPage(Page.overview)}
+            >
+              Overview
+            </button>
+            <button
+              className={clsx('nav-item', page === Page.analysis && 'nav-sel')}
+              onClick={() => handleSetPage(Page.analysis)}
+            >
+              Analysis
+            </button>
+          </div>
+          <div className="pipe">|</div>
+          <div className="source">
+            {file === undefined ? '' : file || 'Showing data from stdin'}
+          </div>
         </div>
       </header>
       <main>{body}</main>
@@ -84,19 +88,21 @@ export default function Main() {
           border-bottom: 1px solid var(--n4);
           padding: 0.8rem 1rem;
         }
-        .title {
-          font-size: 14px;
-          margin: 0;
-          font-weight: 500;
+        .header-items {
           display: flex;
           align-items: center;
         }
-        .vcli {
+        .logo {
           text-transform: uppercase;
           font-weight: bold;
           letter-spacing: 4px;
           color: var(--n10);
           margin-top: 2px;
+        }
+        .source {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 1;
         }
         .pipe {
           color: #a6b1bb;
@@ -107,7 +113,6 @@ export default function Main() {
           display: flex;
           flex-direction: row;
           align-items: center;
-          margin-left: 20px;
         }
         .nav-item {
           border: none;
@@ -126,10 +131,10 @@ export default function Main() {
           margin-left: 10px;
         }
         .nav-item:not(.nav-sel):hover {
-          background-color: var(--n3);
+          background-color: var(--b3);
         }
         .nav-item.nav-sel {
-          background-color: var(--n10);
+          background-color: var(--b9);
           color: var(--n1);
         }
 

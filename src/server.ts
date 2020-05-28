@@ -11,6 +11,7 @@ import opener from 'opener';
 import {bold} from 'chalk';
 
 interface ServerOptions {
+  chartConfig?: any;
   file?: string;
   reader: FsReadStream | ReadStream;
   port?: number;
@@ -28,17 +29,18 @@ export async function startServer(opts: ServerOptions) {
   await nextApp.prepare();
   const nextHandler = nextApp.getRequestHandler();
 
-  // TODO This endpoint could be hit multiple times if the user refreshes the page, need to cache the data
-  let data: Array<any>;
+  // Cache the data in case the user hits the page multiple times
+  let dataResponse: any;
   app.get('/data', async (req, res, next) => {
     // If we've already cached the data, just return that
-    if (data) {
-      res.json(data);
+    if (dataResponse) {
+      res.json(dataResponse);
       return;
     }
     try {
+      dataResponse = {};
+      const data: any[] = [];
       await new Promise((resolve, reject) => {
-        data = [];
         reader
           .pipe(
             csvParse({
@@ -56,7 +58,10 @@ export async function startServer(opts: ServerOptions) {
             resolve();
           });
       });
-      res.json(data);
+      dataResponse.chartConfig = opts.chartConfig || null;
+      dataResponse.file = opts.file || null;
+      dataResponse.data = data;
+      res.json(dataResponse);
     } catch (error) {
       next(error);
     }

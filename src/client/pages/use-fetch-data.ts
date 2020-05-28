@@ -3,6 +3,8 @@ import DataContainer from './data-container';
 
 export function useFetchData() {
   const [data, setData] = useState<DataContainer | null>(null);
+  const [chartConfig, setChartConfig] = useState<any>(null);
+  const [file, setFile] = useState<string | null>(undefined);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -10,7 +12,9 @@ export function useFetchData() {
     fetch('/data')
       .then((res) => res.json())
       .then((res) => {
-        setData(new DataContainer(res));
+        setData(new DataContainer(res.data));
+        setChartConfig(res.chartConfig);
+        setFile(res.file);
         setIsLoading(false);
       })
       .catch((error) => {
@@ -21,7 +25,9 @@ export function useFetchData() {
 
   return {
     data,
+    chartConfig,
     error,
+    file,
     isLoading,
   };
 }
