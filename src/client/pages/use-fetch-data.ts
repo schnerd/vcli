@@ -6,7 +6,7 @@ import {pageState, Page} from './page-state';
 
 export function useFetchData() {
   const [data, setData] = useState<DataContainer | null>(null);
-  const [file, setFile] = useState<string | null>(undefined);
+  const [file, setFile] = useState<string | null | undefined>(undefined);
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,6 +30,7 @@ export function useFetchData() {
         setIsLoading(false);
         setError(error);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
