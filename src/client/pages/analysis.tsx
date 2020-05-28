@@ -1,11 +1,12 @@
 // @ts-ignore d3 types dont have bin()
 import {bin, max, mean, median, min, quantile, sum} from 'd3-array';
-import {useRouter} from 'next/router';
 import {useCallback, useMemo, useState} from 'react';
 import Select, {ValueType} from 'react-select';
+import {useRecoilState} from 'recoil';
 
 import {ChartFieldsMeta, DataPoint, DataTypes, DateAggType, NumAggType} from '../types';
 import AnalysisFacet from './analysis-facet';
+import {analysisConfigState} from './analysis-state';
 import DataContainer, {DataRow, NULL} from './data-container';
 import {FieldSelect, FieldSelectOption, selectComponents, selectTheme} from './field-select';
 import {useSelectOption} from './use-select-option';
@@ -88,41 +89,44 @@ export default function Analysis(props: Props) {
   const header = data.getHeader();
   const rows = data.getRows();
 
-  const query = useRouter().query;
+  const [config, setConfig] = useRecoilState(analysisConfigState);
+  const {x, y, yAgg, dateAgg, facet} = config;
 
-  const initialX = typeof header[Number(query.x)] === 'string' ? Number(query.x) : null;
-  const initialY = typeof header[Number(query.y)] === 'string' ? Number(query.y) : null;
-  const initialYAgg: NumAggType | null = NumAggType[Number(query.yAgg)] ? Number(query.yAgg) : null;
-  const initialDateAgg: DateAggType | null = DateAggType[Number(query.dateAgg)]
-    ? Number(query.dateAgg)
-    : DateAggType.day;
-  const initialFacet = typeof header[Number(query.facet)] === 'string' ? Number(query.facet) : null;
-
-  const [x, setX] = useState<number | null>(initialX);
-  const [y, setY] = useState<number | null>(initialY);
-  const [yAgg, setYAgg] = useState<number | null>(initialYAgg);
-  const [dateAgg, setDateAgg] = useState<number | null>(initialDateAgg);
-  const [facet, setFacet] = useState<number | null>(initialFacet);
   const [showAllFacets, setShowAllFacets] = useState<boolean>(false);
 
   const yAggOption = useSelectOption(NUM_AGG_OPTIONS, yAgg);
   const dateAggOption = useSelectOption(DATE_AGG_OPTIONS, dateAgg);
 
-  const onChangeX = useCallback((v: number) => {
-    setX(v);
-  }, []);
-  const onChangeY = useCallback((v: number) => {
-    setY(v);
-  }, []);
-  const onChangeYAgg = useCallback((v: ValueType<NumAggOption>) => {
-    setYAgg(v ? (v as NumAggOption).value : null);
-  }, []);
-  const onChangeDateAgg = useCallback((v: ValueType<DateAggOption>) => {
-    setDateAgg(v ? (v as DateAggOption).value : null);
-  }, []);
-  const onChangeFacet = useCallback((v: number) => {
-    setFacet(v);
-  }, []);
+  const onChangeX = useCallback(
+    (v: number) => {
+      setConfig({...config, x: v});
+    },
+    [config, setConfig],
+  );
+  const onChangeY = useCallback(
+    (v: number) => {
+      setConfig({...config, y: v});
+    },
+    [config, setConfig],
+  );
+  const onChangeYAgg = useCallback(
+    (v: ValueType<NumAggOption>) => {
+      setConfig({...config, yAagg: v ? (v as NumAggOption).value : null});
+    },
+    [config, setConfig],
+  );
+  const onChangeDateAgg = useCallback(
+    (v: ValueType<DateAggOption>) => {
+      setConfig({...config, dateAgg: v ? (v as DateAggOption).value : null});
+    },
+    [config, setConfig],
+  );
+  const onChangeFacet = useCallback(
+    (v: number) => {
+      setConfig({...config, facet: v});
+    },
+    [config, setConfig],
+  );
 
   const allFieldOptions = useMemo((): FieldSelectOption[] => {
     return header.map(

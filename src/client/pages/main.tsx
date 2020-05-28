@@ -1,20 +1,17 @@
 import clsx from 'clsx';
-import {useCallback, useState} from 'react';
-import {useSetRecoilState} from 'recoil';
+import {useCallback} from 'react';
+import {useSetRecoilState, useRecoilState} from 'recoil';
 import Analysis from './analysis';
 import Overview from './overview';
+import {pageState, Page} from './page-state';
 import {Tooltip, tooltipVisibleState} from './tooltip';
 import {useFetchData} from './use-fetch-data';
 import {VcliLogo} from './vcli-logo';
 
-enum Page {
-  overview,
-  analysis,
-}
-
 export default function Main() {
-  const {data, chartConfig, file, isLoading, error} = useFetchData();
-  const [page, setPage] = useState(Page.overview);
+  const {data, file, isLoading, error} = useFetchData();
+
+  const [page, setPage] = useRecoilState(pageState);
 
   let body = null;
   if (isLoading) {

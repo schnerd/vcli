@@ -79,6 +79,14 @@ class Vcli extends Command {
   }
 
   async parseChartFlags(args: any, flags: any) {
+    const initialConfig = {
+      x: null,
+      y: null,
+      yAgg: null,
+      dateAgg: null,
+      facet: null,
+    };
+
     let xFlag = flags[X_FLAG];
     let yFlag = flags[Y_FLAG];
     let facetFlag = flags.facet;
@@ -94,7 +102,7 @@ class Vcli extends Command {
 
     // If no args passed, we'll just end up showing overview tab
     if (!xFlag && !yFlag && !facetFlag) {
-      return null;
+      return initialConfig;
     }
 
     // Get the CSV header row
@@ -162,9 +170,9 @@ class Vcli extends Command {
     return {
       x: xFlag,
       y: yFlag,
-      facet: facetFlag,
-      dateAgg,
-      yAgg,
+      facet: facetFlag == undefined ? null : facetFlag,
+      dateAgg: dateAgg == undefined ? null : dateAgg,
+      yAgg: yAgg == undefined ? null : yAgg,
     };
   }
 }

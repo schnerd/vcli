@@ -38,7 +38,6 @@ export async function startServer(opts: ServerOptions) {
       return;
     }
     try {
-      dataResponse = {};
       const data: any[] = [];
       await new Promise((resolve, reject) => {
         reader
@@ -58,6 +57,7 @@ export async function startServer(opts: ServerOptions) {
             resolve();
           });
       });
+      dataResponse = {};
       dataResponse.chartConfig = opts.chartConfig || null;
       dataResponse.file = opts.file || null;
       dataResponse.data = data;
