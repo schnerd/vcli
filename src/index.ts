@@ -4,6 +4,7 @@ import fs, {ReadStream as FsReadStream} from 'fs';
 import path from 'path';
 import {DateAggType, NumAggType} from './client/types';
 import {startServer} from './server';
+import {ChartConfig, DataFrame, DataResponse} from './types';
 import ReadStream = NodeJS.ReadStream;
 
 interface ArgsType {
@@ -22,7 +23,25 @@ const Y_FLAG = 'y-axis';
 const X_AGG_RE = /:(day|month|year)$/;
 const Y_AGG_RE = /:(min|max|sum|mean|median|p5|p95)$/;
 
+const initialChartConfig: ChartConfig = {
+  x: null,
+  y: null,
+  yAgg: null,
+  dateAgg: null,
+  facet: null,
+};
+
 class Vcli extends Command {
+  private reader!: FsReadStream | ReadStream;
+  private chartConfig: ChartConfig = initialChartConfig;
+  private args!: any;
+  private flags!: any;
+  private data!: DataFrame;
+  // Promise for when args/flags validation is complete and server can be started
+  private validatePromise!: Promise<void>;
+  // Promise for when input is fully parsed and data object is ready
+  private dataPromise!: Promise<DataResponse>;
+
   static description = 'Quickly visualize CSV data';
 
   static flags = {
@@ -56,19 +75,34 @@ class Vcli extends Command {
   async run() {
     const {args, flags} = this.parse(Vcli);
 
-    const chartConfig = await this.parseChartFlags(args, flags);
+    // Easier to store these than pass them around everywhere
+    this.args = args;
+    this.flags = flags;
 
-    const reader = this.getReadStream(args.file);
+    // Create a ReadableStream for the input file / stdin
+    this.reader = this.getReadStream();
+
+    this.parseInput();
+
+    try {
+      await this.validatePromise;
+    } catch (error) {
+      this.error(error.message);
+    }
+
     startServer({
-      reader,
-      chartConfig,
       logger: this.log.bind(this),
-      file: args.file ? path.basename(args.file) : undefined,
       dev: Boolean(flags.dev),
+      data: this.dataPromise,
     });
   }
 
-  getReadStream(file: string | undefined | null): FsReadStream | ReadStream {
+  getFileName(): string | undefined {
+    return this.args.file ? path.basename(this.args.file) : undefined;
+  }
+
+  getReadStream(): FsReadStream | ReadStream {
+    const file: string | undefined | null = this.args.file;
     if (file) {
       return fs.createReadStream(path.resolve(file));
     }
@@ -78,50 +112,26 @@ class Vcli extends Command {
     return process.stdin;
   }
 
-  async parseChartFlags(args: any, flags: any) {
-    const initialConfig = {
-      x: null,
-      y: null,
-      yAgg: null,
-      dateAgg: null,
-      facet: null,
-    };
-
-    let xFlag = flags[X_FLAG];
-    let yFlag = flags[Y_FLAG];
-    let facetFlag = flags.facet;
+  parseHeaderRow(header: string[]) {
+    let xFlag = this.flags[X_FLAG];
+    let yFlag = this.flags[Y_FLAG];
+    let facetFlag = this.flags.facet;
     let dateAgg: DateAggType | undefined;
     let yAgg: NumAggType | undefined;
     if (yFlag && !xFlag) {
-      this.error('You must also specify an x-axis value using -x');
+      throw new Error('You must also specify an x-axis value using -x');
     } else if (xFlag && !yFlag) {
-      this.error('You must also specify a y-axis value using -y');
+      throw new Error('You must also specify a y-axis value using -y');
     } else if (facetFlag && (!xFlag || !yFlag)) {
-      this.error('You must also pass -x and -y flags to create faceted charts');
+      throw new Error('You must also pass -x and -y flags to create faceted charts');
     }
 
     // If no args passed, we'll just end up showing overview tab
     if (!xFlag && !yFlag && !facetFlag) {
-      return initialConfig;
+      return;
     }
 
     // Get the CSV header row
-    const reader = this.getReadStream(args.file);
-    const header = await new Promise<string[]>((resolve, reject) => {
-      let headerRow: string[] = [];
-      reader
-        .pipe(csvParse({to_line: 1}))
-        .on('error', (error) => {
-          reject(error);
-        })
-        .on('data', (row) => {
-          headerRow = row;
-        })
-        .on('end', () => {
-          resolve(headerRow);
-        });
-    });
-    reader.destroy();
 
     const columnIndexes: Record<string, number> = {};
     header.forEach((col, i) => {
@@ -154,26 +164,70 @@ class Vcli extends Command {
 
     xFlag = coerceToIndex(xFlag);
     if (xFlag === null) {
-      this.error(`Could not find locate column "${xFlag}" for x-axis`);
+      throw new Error(`Could not locate column "${xFlag}" for x-axis`);
     }
     yFlag = coerceToIndex(yFlag);
     if (yFlag === null) {
-      this.error(`Could not find locate column "${yFlag}" for y-axis`);
+      throw new Error(`Could not locate column "${yFlag}" for y-axis`);
     }
     if (facetFlag) {
       facetFlag = coerceToIndex(facetFlag);
       if (facetFlag === null) {
-        this.error(`"${facetFlag}" is not a valid y-axis column`);
+        throw new Error(`"${facetFlag}" is not a valid y-axis column`);
       }
     }
 
-    return {
+    this.chartConfig = {
       x: xFlag,
       y: yFlag,
       facet: facetFlag == undefined ? null : facetFlag,
       dateAgg: dateAgg == undefined ? null : dateAgg,
       yAgg: yAgg == undefined ? null : yAgg,
     };
+  }
+
+  parseInput() {
+    // This is kind of strange, but we need two nested promises to achieve the desired behavior:
+    // - When args/flag validation is complete, validation promise should be resolved
+    // - When data is fully parsed and ready to be sent to frontend
+    // These are not mutually exclusive tasks – they both happen during the data processing phase.
+    this.validatePromise = new Promise((resolveValidation, rejectValidation) => {
+      this.dataPromise = new Promise((resolveData, rejectData) => {
+        const data: any[] = [];
+        let isFirstRow = true;
+        this.reader
+          .pipe(
+            csvParse({
+              cast: true,
+              cast_date: false,
+            }),
+          )
+          .on('error', (error) => {
+            rejectData(error);
+          })
+          .on('data', (row) => {
+            if (isFirstRow) {
+              try {
+                this.parseHeaderRow(row);
+              } catch (error) {
+                rejectValidation(error);
+                this.reader.destroy();
+              }
+              isFirstRow = false;
+              resolveValidation();
+            }
+            data.push(row);
+          })
+          .on('end', () => {
+            const response: DataResponse = {
+              data,
+              chartConfig: this.chartConfig,
+              file: this.getFileName() || null,
+            };
+            resolveData(response);
+          });
+      });
+    });
   }
 }
 

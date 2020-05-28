@@ -22,7 +22,7 @@ export function useFetchData() {
         setIsLoading(false);
 
         setChartConfig(res.chartConfig);
-        if (res.chartConfig.x) {
+        if (res.chartConfig.x != null) {
           setPage(Page.analysis);
         }
       })
