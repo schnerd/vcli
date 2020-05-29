@@ -142,9 +142,9 @@ export default function OverviewField(props: Props) {
           margin: 0;
         }
         .stats {
-          display: grid;
-          grid-template-columns: 1fr 1fr 1fr 1fr;
+          display: flex;
           align-items: center;
+          flex-wrap: wrap;
         }
         .chart {
           flex: 1 1 auto;
