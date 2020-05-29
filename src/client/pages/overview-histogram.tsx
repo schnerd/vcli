@@ -115,7 +115,6 @@ export const OverviewHistogram = memo(function (props: Props) {
     }
 
     /* Render X-axis */
-    const labelFn = (d: string) => (d === '' ? '[empty]' : d);
     const xTickOffset = Math.ceil(xScale.bandwidth() / 2 - xTickHeight / 2);
     $xAxis.style('width', `${xAxisWidth}px`).style('height', `${gridHeight}px`);
     $xAxis
@@ -126,8 +125,7 @@ export const OverviewHistogram = memo(function (props: Props) {
         (update) => update,
         (exit) => exit.remove(),
       )
-      .text(labelFn)
-      .attr('title', labelFn)
+      .text((d: string) => (d === '' ? '[empty]' : d))
       .style('top', (d) => `${xScale(d) + xTickOffset}px`)
       .on('mouseenter.tt', (d, i) => {
         showTooltip(rows[i]);

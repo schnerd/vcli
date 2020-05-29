@@ -1,6 +1,6 @@
 import {format as d3Format} from 'd3-format';
 
-export function formatNumNice(n: number): string {
+export function formatNumNice(n: number, precision = 3): string {
   let abbrev;
   const abs = Math.abs(n);
   if (abs >= 1e12) {
@@ -17,7 +17,7 @@ export function formatNumNice(n: number): string {
     abbrev = 'K';
   }
 
-  const str = String(Number(n.toPrecision(3)));
+  const str = String(Number(n.toPrecision(precision)));
   return abbrev ? `${str}${abbrev}` : str;
 }
 

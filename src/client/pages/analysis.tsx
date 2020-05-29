@@ -10,6 +10,7 @@ import {analysisConfigState} from './analysis-state';
 import DataContainer, {DataRow, NULL} from './data-container';
 import {FieldSelect, FieldSelectOption, selectComponents, selectTheme} from './field-select';
 import {useSelectOption} from './use-select-option';
+import {createBinLabels, createSimpleBinLabels, isProbablyYearField} from './utils';
 
 interface Props {
   data: DataContainer;
@@ -172,6 +173,7 @@ export default function Analysis(props: Props) {
     const xIsText = types[x] === DataTypes.text;
 
     const final = [];
+    const xAccessor = (row: DataRow): any => row[x];
     const yAccessor = (row: DataRow): any => row[y];
 
     Object.keys(facetedRows).forEach((facetKey) => {
@@ -213,10 +215,17 @@ export default function Analysis(props: Props) {
 
       // Handle binning of numeric x-axis values
       if (xIsNum && Object.keys(groupedByX).length > 10 && hasNonNullValue) {
-        const binned = bin().value(yAccessor).thresholds(10)(rows);
+        const binned = bin().value(xAccessor).thresholds(10)(rows);
+
+        // Maybe we should parse years as "date" type instead?
+        const min = binned[0].x0;
+        const max = binned[binned.length - 1].x1;
+        const isYear = isProbablyYearField(header[x], min, max);
+        const binLabels = isYear ? createSimpleBinLabels(binned) : createBinLabels(binned);
+
         groupedByX = {};
-        binned.forEach((bin) => {
-          groupedByX[`${bin.x0} - ${bin.x1}`] = bin;
+        binned.forEach((bin, i) => {
+          groupedByX[binLabels[i]] = bin;
         });
       }
 
@@ -263,7 +272,7 @@ export default function Analysis(props: Props) {
     });
 
     return final;
-  }, [facetedRows, x, y, yAgg, dateAgg, types]);
+  }, [header, facetedRows, x, y, yAgg, dateAgg, types]);
 
   const nFacets = facets ? Object.keys(facets).length : 1;
   const hiddenFacets = nFacets - HIDE_FACETS_AFTER;

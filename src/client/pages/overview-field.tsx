@@ -5,6 +5,7 @@ import {DataTypes} from '../types';
 import {formatNumNice} from '../utils/format';
 import DataContainer, {NULL} from './data-container';
 import {OverviewHistogram} from './overview-histogram';
+import {createBinLabels, createSimpleBinLabels, isProbablyYearField} from './utils';
 
 interface Props {
   data: DataContainer;
@@ -28,6 +29,7 @@ export default function OverviewField(props: Props) {
 
   const {chartData, min, max, mean, p50, p95, nulls, uniques} = useMemo(() => {
     const type = types[col];
+    const colName = header[col];
     let val;
 
     let min = null;
@@ -83,10 +85,14 @@ export default function OverviewField(props: Props) {
         const binner = bin().domain([min, max]).thresholds(10);
         const binned = binner(sorted);
 
+        // Maybe we should parse years as "date" type instead?
+        const isYear = isProbablyYearField(colName, min, max);
+        const binLabels = isYear ? createSimpleBinLabels(binned) : createBinLabels(binned);
+
         chartData = [];
-        binned.forEach((bin) => {
+        binned.forEach((bin, i) => {
           chartData.push({
-            label: `${bin.x0} - ${bin.x1}`,
+            label: binLabels[i],
             value: bin.length,
           });
         });
