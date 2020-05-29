@@ -72,15 +72,18 @@
   "license": "MIT",
   "main": "lib/index.js",
   "oclif": {
-    "bin": "vcli"
+    "bin": "vcli",
+	"macos": {
+		"identifier": "com.vcli.vcli"
+	}
   },
   "repository": "schnerd/vcli",
   "scripts": {
     "lint": "eslint src --ext ts,tsx",
     "posttest": "npm lint",
-    "cli-prepack": "rm -rf lib && tsc -b && oclif-dev readme",
-    "cli-test": "echo NO TESTS",
-    "cli-version": "oclif-dev readme && git add README.md",
+    "prepack": "rm -rf lib && tsc -b && oclif-dev readme",
+    "test": "echo NO TESTS",
+    "version": "oclif-dev readme && git add README.md",
     "client-build": "next build src/client"
   },
   "types": "lib/index.d.ts"
