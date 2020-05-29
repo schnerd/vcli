@@ -1,17 +1,22 @@
 import {extent, max} from 'd3-array';
 import {axisTop} from 'd3-axis';
 import {scaleBand, scaleLinear} from 'd3-scale';
-import {select} from 'd3-selection';
+import {event as d3Event, select} from 'd3-selection';
 import {memo, useEffect, useMemo, useRef, useState} from 'react';
-import {DataPoint} from '../types';
-import {formatNumNice} from '../utils/format';
+import {useSetRecoilState} from 'recoil';
+
+import {DataPoint, DateAggType} from '../types';
+import {formatNum, formatNumNice} from '../utils/format';
+import {tooltipConfigState, tooltipVisibleState} from './tooltip';
 import {useRenderOnResize} from './use-render-on-resize';
 
 interface Props {
   data: DataPoint[];
 }
 
+const MAX_BAR_WIDTH = 40;
 const HIDE_AFTER = 100;
+let tooltipTimerId: any = null;
 
 export const OverviewHistogram = memo(function (props: Props) {
   const {data} = props;
@@ -28,6 +33,9 @@ export const OverviewHistogram = memo(function (props: Props) {
     return showAll ? data : data.slice(0, HIDE_AFTER);
   }, [data, showAll]);
 
+  const setTooltipConfig = useSetRecoilState(tooltipConfigState);
+  const setTooltipVisible = useSetRecoilState(tooltipVisibleState);
+
   useEffect(() => {
     const $xAxis = select(xAxisRef.current);
     const $yAxis = select(yAxisRef.current);
@@ -38,7 +46,6 @@ export const OverviewHistogram = memo(function (props: Props) {
     const height = elRect.height;
 
     // Figure out x content width
-
     const xLabels = rows.map((d) => String(d.label));
     const maxLabelChars = max(xLabels, (d) => d.length);
     const xAxisWidth = Math.min(maxLabelChars * 9 + 8, 120);
@@ -90,6 +97,23 @@ export const OverviewHistogram = memo(function (props: Props) {
       .call(yAxisGen)
       .attr('transform', `translate(${xAxisWidth},${yAxisHeight})`);
 
+    /* Tootlip Fns */
+    function showTooltip(d: DataPoint) {
+      const {label, value} = d;
+      clearTimeout(tooltipTimerId);
+      setTooltipVisible(true);
+      setTooltipConfig({
+        evt: d3Event,
+        title: label,
+        value: formatNum(value),
+      });
+    }
+    function hideTooltip() {
+      tooltipTimerId = setTimeout(() => {
+        setTooltipVisible(false);
+      }, 200);
+    }
+
     /* Render X-axis */
     const labelFn = (d: string) => (d === '' ? '[empty]' : d);
     const xTickOffset = Math.ceil(xScale.bandwidth() / 2 - xTickHeight / 2);
@@ -104,7 +128,11 @@ export const OverviewHistogram = memo(function (props: Props) {
       )
       .text(labelFn)
       .attr('title', labelFn)
-      .style('top', (d) => `${xScale(d) + xTickOffset}px`);
+      .style('top', (d) => `${xScale(d) + xTickOffset}px`)
+      .on('mouseenter.tt', (d, i) => {
+        showTooltip(rows[i]);
+      })
+      .on('mouseleave.tt', hideTooltip);
 
     $grid
       .style('height', `${gridHeight}px`)
@@ -118,7 +146,12 @@ export const OverviewHistogram = memo(function (props: Props) {
       .call(yAxisGen.tickSizeOuter(1).tickSizeInner(-gridHeight));
 
     /* Render Bars */
-
+    let barWidth = xScale.bandwidth();
+    let centerOffset = 0;
+    if (barWidth > MAX_BAR_WIDTH) {
+      barWidth = MAX_BAR_WIDTH;
+      centerOffset = Math.floor((xScale.bandwidth() - barWidth) / 2);
+    }
     $grid
       .selectAll('.bar')
       .data(rows)
@@ -128,10 +161,12 @@ export const OverviewHistogram = memo(function (props: Props) {
         (exit) => exit.remove(),
       )
       .attr('x', 0)
-      .attr('y', (d) => xScale(String(d.label)))
+      .attr('y', (d) => xScale(String(d.label)) + centerOffset)
       .attr('width', (d) => yScale(d.value))
-      .attr('height', xScale.bandwidth());
-  }, [rect, rows]);
+      .attr('height', barWidth)
+      .on('mouseenter.tt', showTooltip)
+      .on('mouseleave.tt', hideTooltip);
+  }, [rect, rows, setTooltipConfig, setTooltipVisible]);
 
   const nRows = data.length;
   const hiddenRows = nRows - HIDE_AFTER;
@@ -231,6 +266,9 @@ export const OverviewHistogram = memo(function (props: Props) {
 
         :global(.bar) {
           fill: var(--b9);
+        }
+        :global(.bar:hover) {
+          fill: var(--b8);
         }
       `}</style>
     </div>
