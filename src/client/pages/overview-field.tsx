@@ -43,7 +43,7 @@ export default function OverviewField(props: Props) {
     const uniqueCounts = {};
     for (let i = 0; i < rows.length; i++) {
       val = rows[i][col];
-      if (val == undefined) {
+      if (val == undefined || val === 'null') {
         val = NULL;
         nulls++;
       }
@@ -62,24 +62,21 @@ export default function OverviewField(props: Props) {
 
     if (isNum) {
       // Numeric stats
-      const sorted = rows
-        .map((d) => {
-          const val = d[col];
-          if (typeof val === 'number') {
-            total += val;
-            return val;
-          }
-          return null;
-        })
-        .sort((a, b) => a - b);
+      const sorted = [];
+      rows.forEach((d) => {
+        const val = d[col];
+        if (typeof val === 'number') {
+          total += val;
+          sorted.push(val);
+        }
+      });
+      sorted.sort((a, b) => a - b);
 
-      const firstNumIndex = sorted.findIndex((d) => typeof d === 'number');
-      const sortedNums = sorted.slice(firstNumIndex);
-      min = sortedNums[0];
-      max = sortedNums[sortedNums.length - 1];
-      mean = total / sortedNums.length;
-      p50 = quantileSorted(sortedNums, 0.5);
-      p95 = quantileSorted(sortedNums, 0.95);
+      min = sorted[0];
+      max = sorted[sorted.length - 1];
+      mean = total / sorted.length;
+      p50 = quantileSorted(sorted, 0.5);
+      p95 = quantileSorted(sorted, 0.95);
 
       // Do we need to bin the numbers?
       if (numUniques > BIN_AFTER && min !== null && max !== null) {
