@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import {useCallback} from 'react';
 import {useSetRecoilState, useRecoilState} from 'recoil';
 import Analysis from './analysis';
+import {Loading} from './loading';
 import Overview from './overview';
 import {pageState, Page} from './page-state';
 import {Tooltip, tooltipVisibleState} from './tooltip';
@@ -15,7 +16,7 @@ export default function Main() {
 
   let body = null;
   if (isLoading) {
-    body = 'Loading...';
+    body = <Loading />;
   } else if (error) {
     body = `error: ${error.toString()}`;
   } else if (data) {
