@@ -1,5 +1,4 @@
-vcli
-====
+![Screen Shot 2020-05-30 at 4 2](https://user-images.githubusercontent.com/875591/83340830-a88d1f80-a291-11ea-808a-1b3745c9650c.jpg)
 
 Quickly visualize CSV data
 
@@ -8,8 +7,10 @@ Quickly visualize CSV data
 [![Downloads/week](https://img.shields.io/npm/dw/vcli.svg)](https://npmjs.org/package/vcli)
 [![License](https://img.shields.io/npm/l/vcli.svg)](https://github.com/schnerd/vcli/blob/master/package.json)
 
+* [Install](#install)
 * [Usage](#usage)
-* [Commands](#commands)
+* [Examples](#examples)
+* [Contributing](#contributing)
 
 # Install
 
