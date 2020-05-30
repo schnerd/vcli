@@ -2,7 +2,7 @@ import {formatNumNice} from '../utils/format';
 
 export function createBinLabels(bins: any[]): string[] {
   const labels: string[] = [];
-  bins.forEach((bin, i) => {
+  bins.forEach((bin) => {
     let precision = 3;
     let x0;
     let x1;

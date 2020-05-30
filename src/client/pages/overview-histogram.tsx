@@ -5,7 +5,7 @@ import {event as d3Event, select} from 'd3-selection';
 import {memo, useEffect, useMemo, useRef, useState} from 'react';
 import {useSetRecoilState} from 'recoil';
 
-import {DataPoint, DateAggType} from '../types';
+import {DataPoint} from '../types';
 import {formatNum, formatNumNice} from '../utils/format';
 import {tooltipConfigState, tooltipVisibleState} from './tooltip';
 import {useRenderOnResize} from './use-render-on-resize';

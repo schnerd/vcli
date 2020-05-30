@@ -14,6 +14,7 @@ export function useRenderOnResize(ref: RefObject<any>) {
     return () => {
       window.removeEventListener('resize', cb);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return rect;

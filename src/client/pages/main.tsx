@@ -33,7 +33,7 @@ export default function Main() {
       setPage(page);
       setTooltipVisible(false);
     },
-    [setTooltipVisible],
+    [setPage, setTooltipVisible],
   );
 
   return (

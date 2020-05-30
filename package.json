@@ -73,15 +73,15 @@
   "main": "lib/index.js",
   "oclif": {
     "bin": "vcli",
-	"macos": {
-		"identifier": "com.vcli.vcli"
-	}
+    "macos": {
+      "identifier": "com.vcli.vcli"
+    }
   },
   "repository": "schnerd/vcli",
   "scripts": {
     "lint": "eslint src --ext ts,tsx",
-    "posttest": "npm lint",
-    "prepack": "rm -rf lib && tsc -b && rm -rf src/client/.next && yarn client-build && mv src/client/.next lib/.next",
+    "posttest": "npm run lint",
+    "prepack": "rm -rf lib && tsc -b && rm -rf src/client/.next && npm run client-build && mv src/client/.next lib/.next",
     "test": "echo NO TESTS",
     "version": "oclif-dev readme && git add README.md",
     "client-build": "next build src/client"
