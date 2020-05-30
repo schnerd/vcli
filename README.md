@@ -1,4 +1,4 @@
-![Screen Shot 2020-05-30 at 4 2](https://user-images.githubusercontent.com/875591/83340830-a88d1f80-a291-11ea-808a-1b3745c9650c.jpg)
+![Screen Shot 2020-05-30 at 4 (1)](https://user-images.githubusercontent.com/875591/83340893-51d41580-a292-11ea-8e17-7073c447b997.jpg)
 
 Quickly visualize CSV data
 
