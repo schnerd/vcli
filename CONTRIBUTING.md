@@ -20,10 +20,12 @@ $ vcli --dev data.csv
 
 # Testing
 
+At the moment there is only linting, no unit/integration tests – but you are welcome to add some to the project (preferable using Jest)
+
+Run linting:
+
 ```js
 npm test
 ```
-
-At the moment there are no test cases –
 
 
