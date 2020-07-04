@@ -1,5 +1,5 @@
 // @ts-ignore
-import {bin, quantileSorted} from 'd3-array';
+import {bin, quantileSorted, deviation} from 'd3-array';
 import {useMemo} from 'react';
 import {DataTypes} from '../types';
 import {formatNumNice} from '../utils/format';
@@ -27,7 +27,19 @@ export default function OverviewField(props: Props) {
   const types = data.getTypes();
   const field = header[col];
 
-  const {chartData, min, max, mean, p50, p95, nulls, uniques} = useMemo(() => {
+  const {
+    chartData,
+    min,
+    max,
+    mean,
+    p50,
+    p95,
+    p99,
+    nulls,
+    uniques,
+    skewness,
+    outlierMax,
+  } = useMemo(() => {
     const type = types[col];
     const colName = header[col];
     let val;
@@ -38,7 +50,10 @@ export default function OverviewField(props: Props) {
     let mean = null;
     let p50 = null;
     let p95 = null;
+    let p99 = null;
     let nulls = 0;
+    let skewness = 0;
+    let outlierMax = 0;
     const isNum = type === DataTypes.num;
 
     // First collect & count unique values (detect  min/max at the same time)
@@ -64,7 +79,7 @@ export default function OverviewField(props: Props) {
 
     if (isNum) {
       // Numeric stats
-      const sorted = [];
+      let sorted = [];
       rows.forEach((d) => {
         const val = d[col];
         if (typeof val === 'number') {
@@ -79,6 +94,15 @@ export default function OverviewField(props: Props) {
       mean = total / sorted.length;
       p50 = quantileSorted(sorted, 0.5);
       p95 = quantileSorted(sorted, 0.95);
+      p99 = quantileSorted(sorted, 0.99);
+      const p25 = quantileSorted(sorted, 0.25);
+      const p75 = quantileSorted(sorted, 0.75);
+      const iqr = p75 - p25;
+      const outlierMin = p25 - 1.5 * iqr;
+      outlierMax = p75 + 1.5 * iqr;
+
+      const stddev = deviation(sorted);
+      skewness = (3 * (mean - p50)) / stddev;
 
       // Do we need to bin the numbers?
       if (numUniques > BIN_AFTER && min !== null && max !== null) {
@@ -101,7 +125,19 @@ export default function OverviewField(props: Props) {
       chartData.sort((a, b) => b.value - a.value);
     }
 
-    return {chartData, min, max, mean, p50, p95, nulls, uniques: numUniques};
+    return {
+      chartData,
+      min,
+      max,
+      mean,
+      p50,
+      p95,
+      p99,
+      nulls,
+      uniques: numUniques,
+      skewness,
+      outlierMax,
+    };
   }, [col, header, rows, types]);
 
   return (
@@ -120,6 +156,9 @@ export default function OverviewField(props: Props) {
                 <Stat name="max" val={max} />
                 <Stat name="p50" val={p50} />
                 <Stat name="p95" val={p95} />
+                <Stat name="p99" val={p99} />
+                <Stat name="skew" val={skewness} />
+                <Stat name="olmx" val={outlierMax} />
               </>
             )}
           </div>
