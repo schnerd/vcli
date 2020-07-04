@@ -17,7 +17,14 @@ export function formatNumNice(n: number, precision = 3): string {
     abbrev = 'K';
   }
 
-  const str = String(Number(n.toPrecision(precision)));
+  let preciseNum = Number(n.toPrecision(precision));
+
+  // Handle edge case so 999,999 doesn't get rounded up to 1000K
+  if (preciseNum >= 1000) {
+    preciseNum = 999;
+  }
+
+  const str = String(preciseNum);
   return abbrev ? `${str}${abbrev}` : str;
 }
 
