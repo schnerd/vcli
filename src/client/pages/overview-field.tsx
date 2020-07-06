@@ -1,5 +1,5 @@
 // @ts-ignore
-import {bin, quantileSorted, deviation} from 'd3-array';
+import {bin, quantileSorted} from 'd3-array';
 import {useMemo} from 'react';
 import {DataTypes} from '../types';
 import {formatNumNice} from '../utils/format';
@@ -27,19 +27,7 @@ export default function OverviewField(props: Props) {
   const types = data.getTypes();
   const field = header[col];
 
-  const {
-    chartData,
-    min,
-    max,
-    mean,
-    p50,
-    p95,
-    p99,
-    nulls,
-    uniques,
-    skewness,
-    outlierMax,
-  } = useMemo(() => {
+  const {chartData, min, max, mean, p50, p95, nulls, uniques} = useMemo(() => {
     const type = types[col];
     const colName = header[col];
     let val;
@@ -50,11 +38,9 @@ export default function OverviewField(props: Props) {
     let mean = null;
     let p50 = null;
     let p95 = null;
-    let p99 = null;
     let nulls = 0;
-    let skewness = 0;
-    let outlierMax = 0;
     const isNum = type === DataTypes.num;
+    let isInt = isNum;
 
     // First collect & count unique values (detect  min/max at the same time)
     const uniqueCounts = {};
@@ -73,9 +59,7 @@ export default function OverviewField(props: Props) {
 
     const numUniques = Object.keys(uniqueCounts).length;
 
-    let chartData = Object.keys(uniqueCounts).map((key) => {
-      return {label: key, value: uniqueCounts[key]};
-    });
+    let chartData;
 
     if (isNum) {
       // Numeric stats
@@ -84,6 +68,9 @@ export default function OverviewField(props: Props) {
         const val = d[col];
         if (typeof val === 'number') {
           total += val;
+          if (isInt && val % 1 !== 0) {
+            isInt = false;
+          }
           sorted.push(val);
         }
       });
@@ -94,24 +81,50 @@ export default function OverviewField(props: Props) {
       mean = total / sorted.length;
       p50 = quantileSorted(sorted, 0.5);
       p95 = quantileSorted(sorted, 0.95);
-      p99 = quantileSorted(sorted, 0.99);
-      const p25 = quantileSorted(sorted, 0.25);
-      const p75 = quantileSorted(sorted, 0.75);
-      const iqr = p75 - p25;
-      const outlierMin = p25 - 1.5 * iqr;
-      outlierMax = p75 + 1.5 * iqr;
 
-      const stddev = deviation(sorted);
-      skewness = (3 * (mean - p50)) / stddev;
+      const bucketSize = (max - min) / 8;
+      const l20 = min + bucketSize * 2;
+      const l80 = max - bucketSize * 2;
+      let binningMin = min;
+      let binningMax = max;
+      let numUniqueForBinning = numUniques;
+
+      if (p50 < l20) {
+        // Significantly left skewed, chop top 1%
+        const splitPoint = Math.ceil(sorted.length * 0.99);
+        const removed = sorted.slice(splitPoint);
+        sorted = sorted.slice(0, splitPoint);
+        binningMax = sorted[sorted.length - 1];
+
+        removed.forEach((n) => {
+          if (uniqueCounts[n] !== undefined && n !== binningMax) {
+            delete uniqueCounts[n];
+          }
+        });
+        numUniqueForBinning = Object.keys(uniqueCounts).length;
+      } else if (p50 > l80) {
+        // Significantly right skewed, chop bottom 1%
+        const splitPoint = Math.floor(sorted.length * 0.01);
+        const removed = sorted.slice(0, splitPoint);
+        sorted = sorted.slice(splitPoint);
+        binningMin = sorted[0];
+
+        removed.forEach((n) => {
+          if (uniqueCounts[n] !== undefined && n !== binningMin) {
+            delete uniqueCounts[n];
+          }
+        });
+        numUniqueForBinning = Object.keys(uniqueCounts).length;
+      }
 
       // Do we need to bin the numbers?
-      if (numUniques > BIN_AFTER && min !== null && max !== null) {
-        const binner = bin().domain([min, max]).thresholds(10);
+      if (numUniqueForBinning > BIN_AFTER && min !== null && max !== null) {
+        const binner = bin().domain([binningMin, binningMax]).thresholds(BIN_AFTER);
         const binned = binner(sorted);
 
         // Maybe we should parse years as "date" type instead?
         const isYear = isProbablyYearField(colName, min, max);
-        const binLabels = isYear ? createSimpleBinLabels(binned) : createBinLabels(binned);
+        const binLabels = isYear ? createSimpleBinLabels(binned) : createBinLabels(binned, isInt);
 
         chartData = [];
         binned.forEach((bin, i) => {
@@ -120,9 +133,19 @@ export default function OverviewField(props: Props) {
             value: bin.length,
           });
         });
+      } else {
+        chartData = Object.keys(uniqueCounts)
+          .map((key) => {
+            return {label: key, value: uniqueCounts[key]};
+          })
+          .sort((a, b) => Number(a.label) - Number(b.label));
       }
     } else {
-      chartData.sort((a, b) => b.value - a.value);
+      chartData = Object.keys(uniqueCounts)
+        .map((key) => {
+          return {label: key, value: uniqueCounts[key]};
+        })
+        .sort((a, b) => b.value - a.value);
     }
 
     return {
@@ -132,11 +155,8 @@ export default function OverviewField(props: Props) {
       mean,
       p50,
       p95,
-      p99,
       nulls,
       uniques: numUniques,
-      skewness,
-      outlierMax,
     };
   }, [col, header, rows, types]);
 
@@ -156,9 +176,6 @@ export default function OverviewField(props: Props) {
                 <Stat name="max" val={max} />
                 <Stat name="p50" val={p50} />
                 <Stat name="p95" val={p95} />
-                <Stat name="p99" val={p99} />
-                <Stat name="skew" val={skewness} />
-                <Stat name="olmx" val={outlierMax} />
               </>
             )}
           </div>
