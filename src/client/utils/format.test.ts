@@ -25,6 +25,12 @@ describe('formatNumNice', () => {
   test('should format 999,999 correctly', () => {
     expect(formatNumNice(999999)).toBe('999K');
   });
+  test('should format 1,999 correctly', () => {
+    expect(formatNumNice(1999)).toBe('1.99K');
+  });
+  test('should format 1.999 correctly', () => {
+    expect(formatNumNice(1.999)).toBe('1.99');
+  });
   test('should format floats correctly', () => {
     expect(formatNumNice(1.27487)).toBe('1.27');
   });

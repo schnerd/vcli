@@ -17,14 +17,14 @@ export function formatNumNice(n: number, precision = 3): string {
     abbrev = 'K';
   }
 
-  let preciseNum = Number(n.toPrecision(precision));
+  const preciseNum = Number(n.toPrecision(precision));
+  let str = String(preciseNum);
 
-  // Handle edge case so 999,999 doesn't get rounded up to 1000K
-  if (preciseNum >= 1000) {
-    preciseNum = 999;
+  // Handle edge cases so 999,999 doesn't become 1000K, 1,999 => 2K, etc.
+  if (Math.abs(preciseNum).toExponential()[0] !== Math.abs(n).toExponential()[0]) {
+    str = toPrecisionNoRounding(n, precision);
   }
 
-  const str = String(preciseNum);
   return abbrev ? `${str}${abbrev}` : str;
 }
 
@@ -36,4 +36,22 @@ export function formatNum(n: number): string {
     return addCommas(n);
   }
   return fourSigfigs(n);
+}
+
+export function toPrecisionNoRounding(n, precision) {
+  let numSigFigs = 0;
+  const final = [];
+  let foundNonZero = false;
+  const str = String(n);
+  for (let i = 0; i < str.length; i++) {
+    if (/\d/.test(str[i]) && (str[i] !== '0' || foundNonZero)) {
+      foundNonZero = true;
+      numSigFigs++;
+    }
+    final.push(str[i]);
+    if (numSigFigs >= precision) {
+      break;
+    }
+  }
+  return final.join('');
 }
