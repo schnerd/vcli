@@ -28,6 +28,7 @@
     "opener": "^1.5.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-icons": "^3.10.0",
     "react-select": "^3.1.0",
     "recoil": "^0.0.7",
     "tslib": "^1",

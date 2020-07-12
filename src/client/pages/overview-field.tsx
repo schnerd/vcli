@@ -1,11 +1,13 @@
 // @ts-ignore
 import {bin, quantileSorted} from 'd3-array';
-import {useMemo} from 'react';
+import {useCallback, useMemo, useRef, useState} from 'react';
 import {DataTypes} from '../types';
 import {formatNumNice} from '../utils/format';
 import DataContainer, {NULL} from './data-container';
 import {OverviewHistogram} from './overview-histogram';
 import {createBinLabels, createSimpleBinLabels, isProbablyYearField} from './utils';
+import {useForceUpdate} from '../utils/use-force-update';
+import {OutliersButton} from './outliers-button';
 
 interface Props {
   data: DataContainer;
@@ -26,6 +28,10 @@ export default function OverviewField(props: Props) {
   const rows = data.getRows();
   const types = data.getTypes();
   const field = header[col];
+
+  const hasOutliers = useRef<boolean>(false);
+  const chopOutliersRef = useRef<null | boolean>(null);
+  const chopOutliersMemoBuster = chopOutliersRef.current === null ? true : chopOutliersRef.current;
 
   const {chartData, min, max, mean, p50, p95, nulls, uniques} = useMemo(() => {
     const type = types[col];
@@ -89,32 +95,40 @@ export default function OverviewField(props: Props) {
       let binningMax = max;
       let numUniqueForBinning = numUniques;
 
-      if (p50 < l20) {
-        // Significantly left skewed, chop top 1%
-        const splitPoint = Math.ceil(sorted.length * 0.99);
-        const removed = sorted.slice(splitPoint);
-        sorted = sorted.slice(0, splitPoint);
-        binningMax = sorted[sorted.length - 1];
+      if (chopOutliersRef.current !== false) {
+        if (p50 < l20) {
+          // Significantly left skewed, chop top 1%
+          const splitPoint = Math.ceil(sorted.length * 0.99);
+          const removed = sorted.slice(splitPoint);
+          sorted = sorted.slice(0, splitPoint);
+          binningMax = sorted[sorted.length - 1];
 
-        removed.forEach((n) => {
-          if (uniqueCounts[n] !== undefined && n !== binningMax) {
-            delete uniqueCounts[n];
-          }
-        });
-        numUniqueForBinning = Object.keys(uniqueCounts).length;
-      } else if (p50 > l80) {
-        // Significantly right skewed, chop bottom 1%
-        const splitPoint = Math.floor(sorted.length * 0.01);
-        const removed = sorted.slice(0, splitPoint);
-        sorted = sorted.slice(splitPoint);
-        binningMin = sorted[0];
+          removed.forEach((n) => {
+            if (uniqueCounts[n] !== undefined && n !== binningMax) {
+              delete uniqueCounts[n];
+            }
+          });
+          numUniqueForBinning = Object.keys(uniqueCounts).length;
+          hasOutliers.current = true;
+          chopOutliersRef.current = true;
+        } else if (p50 > l80) {
+          // Significantly right skewed, chop bottom 1%
+          const splitPoint = Math.floor(sorted.length * 0.01);
+          const removed = sorted.slice(0, splitPoint);
+          sorted = sorted.slice(splitPoint);
+          binningMin = sorted[0];
 
-        removed.forEach((n) => {
-          if (uniqueCounts[n] !== undefined && n !== binningMin) {
-            delete uniqueCounts[n];
-          }
-        });
-        numUniqueForBinning = Object.keys(uniqueCounts).length;
+          removed.forEach((n) => {
+            if (uniqueCounts[n] !== undefined && n !== binningMin) {
+              delete uniqueCounts[n];
+            }
+          });
+          numUniqueForBinning = Object.keys(uniqueCounts).length;
+          hasOutliers.current = true;
+          chopOutliersRef.current = true;
+        } else {
+          chopOutliersRef.current = false;
+        }
       }
 
       // Do we need to bin the numbers?
@@ -158,18 +172,34 @@ export default function OverviewField(props: Props) {
       nulls,
       uniques: numUniques,
     };
-  }, [col, header, rows, types]);
+  }, [col, header, rows, types, chopOutliersMemoBuster]);
+
+  const forceUpdate = useForceUpdate();
+
+  const handleToggleChop = useCallback(() => {
+    chopOutliersRef.current = !chopOutliersRef.current;
+    forceUpdate();
+  }, [forceUpdate]);
+
+  const isNum = types[col] === DataTypes.num;
 
   return (
     <>
       <div className="root">
         <div className="header">
-          <h3 className="title">{field}</h3>
+          <div className="header-top">
+            <h3 className="title">{field}</h3>
+            {hasOutliers.current && (
+              <div className="chop">
+                <OutliersButton enabled={chopOutliersRef.current} onClick={handleToggleChop} />
+              </div>
+            )}
+          </div>
           <div className="stats">
             <Stat name="type" val={TYPE_LABELS[types[col]]} />
             <Stat name="null" val={nulls} />
             <Stat name="uniq" val={uniques} />
-            {types[col] === DataTypes.num && (
+            {isNum && (
               <>
                 <Stat name="mean" val={mean} />
                 <Stat name="min" val={min} />
@@ -197,8 +227,13 @@ export default function OverviewField(props: Props) {
           padding: 10px;
           flex: 0 0 auto;
         }
+        .header-top {
+          display: flex;
+          align-items: center;
+        }
         .title {
           margin: 0;
+          flex: 1 1 auto;
         }
         .stats {
           display: flex;
