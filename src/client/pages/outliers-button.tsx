@@ -69,6 +69,9 @@ export function OutliersButton(props: Props) {
         .enabled:hover {
           color: var(--b9);
         }
+        .enabled :global(svg) {
+          filter: drop-shadow(0 0 2px rgba(16, 112, 202, 0.4));
+        }
 
         :global(.outliers-pop-body) {
           max-width: 240px;
