@@ -5,7 +5,7 @@ import Analysis from './analysis';
 import {Loading} from './loading';
 import Overview from './overview';
 import {pageState, Page} from './page-state';
-import {Tooltip, tooltipVisibleState} from './tooltip';
+import {ChartTooltip, tooltipVisibleState} from './chart-tooltip';
 import {useFetchData} from './use-fetch-data';
 import {VcliLogo} from './vcli-logo';
 
@@ -65,7 +65,7 @@ export default function Main() {
         </div>
       </header>
       <main>{body}</main>
-      <Tooltip />
+      <ChartTooltip />
 
       <style jsx>{`
         .container {

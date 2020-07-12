@@ -180,6 +180,7 @@ export default function Analysis(props: Props) {
       const rows = facetedRows[facetKey];
       let groupedByX = {};
       let hasNonNullValue = false;
+      let isInt = xIsNum;
 
       // Aggregate rows by x-value
       rows.forEach((row) => {
@@ -204,6 +205,9 @@ export default function Analysis(props: Props) {
           }
           xValue = d.getTime();
         }
+        if (isInt && (xValue as number) % 1 !== 0) {
+          isInt = false;
+        }
 
         hasNonNullValue = true;
 
@@ -221,7 +225,7 @@ export default function Analysis(props: Props) {
         const min = binned[0].x0;
         const max = binned[binned.length - 1].x1;
         const isYear = isProbablyYearField(header[x], min, max);
-        const binLabels = isYear ? createSimpleBinLabels(binned) : createBinLabels(binned);
+        const binLabels = isYear ? createSimpleBinLabels(binned) : createBinLabels(binned, isInt);
 
         groupedByX = {};
         binned.forEach((bin, i) => {

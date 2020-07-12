@@ -18,7 +18,7 @@ export interface TooltipConfig {
   value: string;
 }
 
-export function Tooltip() {
+export function ChartTooltip() {
   const config = useRecoilValue(tooltipConfigState) || {};
   const isVisible = useRecoilValue(tooltipVisibleState);
 

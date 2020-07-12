@@ -30,7 +30,9 @@
     "react-dom": "^16.13.1",
     "react-icons": "^3.10.0",
     "react-select": "^3.1.0",
+    "react-transition-group": "^4.4.1",
     "recoil": "^0.0.7",
+    "styled-jsx": "^3.3.0",
     "tslib": "^1",
     "ws": "^7.3.0"
   },
@@ -87,6 +89,7 @@
     "prepack": "rm -rf lib && tsc -b && rm -rf src/client/.next && npm run client-build && mv src/client/.next lib/.next",
     "test": "jest",
     "test-watch": "jest --watch",
+	"typecheck": "tsc --noEmit",
     "version": "oclif-dev readme && git add README.md",
     "client-build": "next build src/client"
   },

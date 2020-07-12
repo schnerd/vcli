@@ -7,7 +7,7 @@ import {useSetRecoilState} from 'recoil';
 
 import {DataPoint} from '../types';
 import {formatNum, formatNumNice} from '../utils/format';
-import {tooltipConfigState, tooltipVisibleState} from './tooltip';
+import {tooltipConfigState, tooltipVisibleState} from './chart-tooltip';
 import {useRenderOnResize} from './use-render-on-resize';
 
 interface Props {
