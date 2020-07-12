@@ -9,18 +9,34 @@ export interface FieldSelectOption {
   type: DataTypes;
 }
 
+const selectStyles = {
+  control: (provided, state) => ({
+    ...provided,
+    boxShadow: state.isFocused
+      ? provided.boxShadow
+      : 'rgba(67,90,111,0.4) 0px 0px 1px, rgba(67,90,111,0.47) 0px 4px 5px -4px',
+    borderColor: state.isFocused ? provided.borderColor : 'transparent',
+  }),
+};
+
 export const selectTheme = (baseTheme: Theme): Theme => ({
   ...baseTheme,
   colors: {
     ...baseTheme.colors,
-    primary: 'var(--n9)',
-    primary75: 'var(--n8)',
-    primary50: 'var(--n6)',
-    primary25: 'var(--n4)',
+    primary: 'var(--b9)',
+    primary75: 'var(--b8)',
+    primary50: 'var(--b6)',
+    primary25: 'var(--b4)',
   },
 });
 export const selectComponents = {
   IndicatorSeparator: () => null,
+};
+
+export const selectStyleProps = {
+  styles: selectStyles,
+  theme: selectTheme,
+  components: selectComponents,
 };
 
 interface Props {
@@ -48,10 +64,9 @@ export const FieldSelect = memo(function (props: Props) {
       options={options}
       value={valueOption}
       placeholder="Select field"
-      theme={selectTheme}
-      components={selectComponents}
       onChange={handleChange}
       noOptionsMessage={noOptionsMessage}
+      {...selectStyleProps}
     />
   );
 });

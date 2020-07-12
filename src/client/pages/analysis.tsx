@@ -8,7 +8,7 @@ import {ChartFieldsMeta, DataPoint, DataTypes, DateAggType, NumAggType} from '..
 import AnalysisFacet from './analysis-facet';
 import {analysisConfigState} from './analysis-state';
 import DataContainer, {DataRow, NULL} from './data-container';
-import {FieldSelect, FieldSelectOption, selectComponents, selectTheme} from './field-select';
+import {FieldSelect, FieldSelectOption, selectStyleProps} from './field-select';
 import {useSelectOption} from './use-select-option';
 import {createBinLabels, createSimpleBinLabels, isProbablyYearField} from './utils';
 
@@ -318,9 +318,8 @@ export default function Analysis(props: Props) {
                     options={DATE_AGG_OPTIONS}
                     value={dateAggOption}
                     placeholder="Agg"
-                    theme={selectTheme}
-                    components={selectComponents}
                     onChange={onChangeDateAgg}
+                    {...selectStyleProps}
                   />
                 </div>
               )}
@@ -343,9 +342,8 @@ export default function Analysis(props: Props) {
                     options={NUM_AGG_OPTIONS}
                     value={yAggOption}
                     placeholder="Agg"
-                    theme={selectTheme}
-                    components={selectComponents}
                     onChange={onChangeYAgg}
+                    {...selectStyleProps}
                   />
                 </div>
               )}
