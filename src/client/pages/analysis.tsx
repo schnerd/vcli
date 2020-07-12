@@ -469,6 +469,7 @@ export default function Analysis(props: Props) {
           padding: 8px 10px;
           display: flex;
           align-items: flex-start;
+          color: var(--n7);
         }
         .intro-text {
           margin: 4px 8px;
