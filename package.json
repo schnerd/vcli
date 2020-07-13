@@ -91,7 +91,8 @@
     "test-watch": "jest --watch",
     "typecheck": "tsc --noEmit",
     "version": "oclif-dev readme && git add README.md",
-    "client-build": "next build src/client"
+    "client-build": "next build src/client",
+	"docs:build": "next build docs"
   },
   "types": "lib/index.d.ts"
 }
