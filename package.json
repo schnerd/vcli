@@ -89,7 +89,7 @@
     "prepack": "rm -rf lib && tsc -b && rm -rf src/client/.next && npm run client-build && mv src/client/.next lib/.next",
     "test": "jest",
     "test-watch": "jest --watch",
-	"typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "version": "oclif-dev readme && git add README.md",
     "client-build": "next build src/client"
   },
