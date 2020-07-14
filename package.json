@@ -86,13 +86,13 @@
   "scripts": {
     "lint": "eslint src --ext ts,tsx",
     "posttest": "npm run lint",
-    "prepack": "rm -rf lib && tsc -b && rm -rf src/client/.next && npm run client-build && mv src/client/.next lib/.next",
+    "prepack": "rm -rf lib && tsc -b && rm -rf src/client/.next && npm run client-build && mv src/client/.next lib/.next && cp -r src/client/public lib/public",
     "test": "jest",
     "test-watch": "jest --watch",
     "typecheck": "tsc --noEmit",
     "version": "oclif-dev readme && git add README.md",
     "client-build": "next build src/client",
-  	"docs:build": "next build docs",
+    "docs:build": "next build docs",
     "docs:dev": "next dev docs"
   },
   "types": "lib/index.d.ts"

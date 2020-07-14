@@ -1,4 +1,3 @@
-import path from 'path';
 import http from 'http';
 import {parse} from 'url';
 
@@ -21,19 +20,14 @@ export async function startServer(opts: ServerOptions) {
 
   const app = express();
 
-  const nextApp = nextJs({dev, dir: dev ? './src/client' : __dirname});
+  const isPackaged = __dirname.endsWith('/lib');
+  const nextApp = nextJs({dev, dir: isPackaged ? './lib' : './src/client'});
   await nextApp.prepare();
   const nextHandler = nextApp.getRequestHandler();
 
   app.get('/data', async (req, res, next) => {
     data.then((payload) => res.json(payload)).catch((error) => next(error));
   });
-
-  // Set up next static directories first
-  const nextStaticDir = dev
-    ? path.join(path.resolve(__dirname, './client/.next'), 'public')
-    : path.join(path.resolve(__dirname, './.next'), 'static');
-  app.use('/_next/static', express.static(nextStaticDir));
 
   // Let next handle the other endpoints
   app.use((req, res) => {
