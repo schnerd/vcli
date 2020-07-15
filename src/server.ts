@@ -21,7 +21,7 @@ export async function startServer(opts: ServerOptions) {
   const app = express();
 
   const isPackaged = __dirname.endsWith('/lib');
-  const nextApp = nextJs({dev, dir: isPackaged ? './lib' : './src/client'});
+  const nextApp = nextJs({dev, dir: isPackaged ? __dirname : './src/client'});
   await nextApp.prepare();
   const nextHandler = nextApp.getRequestHandler();
 

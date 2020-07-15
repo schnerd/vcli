@@ -173,7 +173,7 @@ class Vcli extends Command {
     if (facetFlag) {
       facetFlag = coerceToIndex(facetFlag);
       if (facetFlag === null) {
-        throw new Error(`"${facetFlag}" is not a valid y-axis column`);
+        throw new Error(`"${facetFlag}" is not a valid facet column`);
       }
     }
 
