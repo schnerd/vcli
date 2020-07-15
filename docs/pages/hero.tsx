@@ -20,6 +20,13 @@ export default function Hero() {
               Sorry, your browser doesn&apos;t support embedded videos.
             </video>
           </div>
+          <div className="beta">
+            <span className="beta-tag">Beta</span> vcli is beta software, please{' '}
+            <a href="https://github.com/schnerd/vcli/issues" target="_blank" rel="noreferrer">
+              report any issues
+            </a>{' '}
+            you experience.
+          </div>
         </div>
       </div>
       <style jsx>{`
@@ -60,6 +67,7 @@ export default function Hero() {
           background: rgb(0, 40, 51);
           margin: 0 auto;
           display: flex;
+          max-width: 100%;
           border-radius: 5px;
           overflow: hidden;
           box-shadow: rgba(67, 90, 111, 0.3) 0px 0px 1px, rgba(67, 90, 111, 0.47) 0px 4px 10px -4px;
@@ -68,6 +76,36 @@ export default function Hero() {
           max-width: 100%;
           width: 100%;
           height: 100%;
+        }
+
+        .beta {
+          text-align: center;
+          color: var(--n7);
+          font-size: 14px;
+          margin-top: 30px;
+        }
+        .beta-tag {
+          background: #ec4c47;
+          color: white;
+          font-size: 10px;
+          line-height: 1;
+          white-space: nowrap;
+          text-transform: uppercase;
+          padding: 2px 5px 3px;
+          border-radius: 3px;
+          font-weight: bold;
+          letter-spacing: 1px;
+          margin-right: 5px;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 576px) {
+          h1 {
+            font-size: 36px;
+          }
+          h4 {
+            font-size: 18px;
+          }
         }
       `}</style>
     </div>

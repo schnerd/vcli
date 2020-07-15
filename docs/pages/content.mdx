@@ -1,5 +1,77 @@
+# Motivation
+
+Whether you're a data scientist, engineer, or data visualizer, you've probably run into a case where you want to quickly analyze and understand a dataset by calculating distributions of values, outliers, completeness, and other statistics.
+
+vcli aims to integrate into existing command line workflows with supporting piping in data, while also providing the richness & flexibility of browser-based visualizations.
+
 # Install
+
+### Installing via npm
+
+1. Install node.js via [package manager](https://nodejs.org/en/download/package-manager/#macos) or [download](https://nodejs.org/en/download/), if you haven't already.
+
+2. Install the vcli package globally
+
+```sh-session
+$ npm install -g vcli
+```
 
 # Usage
 
+```
+USAGE
+  $ vcli [FILE]
+  $ program | vcli
+
+OPTIONS
+  -h, --help           show CLI help
+  -v, --version        show CLI version
+
+  -x, --x-axis=x-axis  Column index/name to plot on x-axis of charts. For date fields you can specify an aggregate function like start_date:month
+                       (supports day/month/year)
+
+  -y, --y-axis=y-axis  Column index/name to plot on y-axis of charts. You can also specify an aggregate function like sales:sum (supports
+                       min/max/sum/mean/median/p5/p95)
+
+  --facet=facet        Column index/name that will be used to group data into separate charts
+```
+
 # Examples
+
+#### Launch "Overview" visualization with stats & distributions for all columns
+
+```
+$ vcli data.csv
+```
+
+#### Launch "Analysis" visualization with specified configuration
+
+```
+$ vcli -x date:month -y cases:sum --facet state data.csv
+```
+
+#### Pipe CSV data from an API into vcli
+
+```
+$ curl -s https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv | vcli
+```
+
+#### Pipe CSV data from another program into vcli
+
+```
+$ python my-csv-generator.py | vcli
+```
+
+# Resources
+
+If vcli isn't quite what you're looking for, you might like one of these browser-based visualizers:
+
+- [Facets](https://pair-code.github.io/facets/)
+- [Voyager](https://vega.github.io/voyager/)
+
+And if you're looking for other complimentary command line data tools, check out these projects:
+
+- [csvtk](https://github.com/shenwei356/csvtk)
+- [xsv](https://github.com/BurntSushi/xsv)
+- [csvkit](https://csvkit.readthedocs.io/en/latest/)
+

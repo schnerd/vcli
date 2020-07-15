@@ -33,6 +33,9 @@ export default function Header() {
               <a className="nav-link" href="#Examples">
                 Examples
               </a>
+              <a className="nav-link" href="#Resources">
+                Resources
+              </a>
             </nav>
           </div>
           <div className="header-right">
@@ -100,6 +103,13 @@ export default function Header() {
         }
         .github-link {
           display: flex;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 576px) {
+          nav {
+            display: none;
+          }
         }
       `}</style>
     </header>

@@ -2,6 +2,7 @@ import Header from './header';
 import Hero from './hero';
 // @ts-ignore
 import Content from './content.mdx';
+import Footer from './footer';
 
 export default function Main() {
   return (
@@ -11,6 +12,7 @@ export default function Main() {
       <div className="container-fluid content-wrap markdown-body">
         <Content />
       </div>
+      <Footer />
       <style jsx global>{`
         .markdown-body h1,
         .markdown-body h2,
@@ -51,11 +53,67 @@ export default function Main() {
         .markdown-body p {
           margin-top: 0;
           margin-bottom: 10px;
+          line-height: 1.5;
+        }
+
+        .markdown-body code,
+        .markdown-body pre {
+          font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+          font-size: 12px;
+        }
+        .markdown-body pre {
+          margin-top: 0;
+          margin-bottom: 16px;
+          word-wrap: normal;
+          padding: 16px;
+          overflow: auto;
+          font-size: 85%;
+          line-height: 1.45;
+          background-color: #f6f8fa;
+          border-radius: 3px;
+        }
+        .markdown-body pre > code {
+          background-color: initial;
+          border-radius: 3px;
+          border: 0;
+          display: inline;
+          line-height: inherit;
+          margin: 0;
+          overflow: visible;
+          padding: 0;
+          white-space: pre;
+          word-break: normal;
+          word-wrap: normal;
+        }
+
+        .markdown-body ol,
+        .markdown-body ul {
+          padding-left: 2em;
+        }
+
+        .markdown-body ol ol,
+        .markdown-body ol ul,
+        .markdown-body ul ol,
+        .markdown-body ul ul {
+          margin-top: 0;
+          margin-bottom: 0;
+        }
+
+        .markdown-body li {
+          word-wrap: break-all;
+        }
+
+        .markdown-body li > p {
+          margin-top: 16px;
+        }
+
+        .markdown-body li + li {
+          margin-top: 0.25em;
         }
       `}</style>
       <style jsx>{`
         .content-wrap {
-          max-width: 700px;
+          max-width: 800px;
         }
       `}</style>
     </div>
