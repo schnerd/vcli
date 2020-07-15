@@ -14,7 +14,12 @@ export default function Hero() {
             <br />
             from files, APIs, and other programs
           </h4>
-          <div className="video"></div>
+          <div className="video">
+            <video controls autoPlay loop muted width="1022" height="736">
+              <source src="/product-demo.mp4" type="video/mp4" />
+              Sorry, your browser doesn&apos;t support embedded videos.
+            </video>
+          </div>
         </div>
       </div>
       <style jsx>{`
@@ -51,10 +56,18 @@ export default function Hero() {
           line-height: 1.4;
         }
         .video {
-          width: 600px;
-          height: 440px;
-          background: var(--n3);
+          width: 800px;
+          background: rgb(0, 40, 51);
           margin: 0 auto;
+          display: flex;
+          border-radius: 5px;
+          overflow: hidden;
+          box-shadow: rgba(67, 90, 111, 0.3) 0px 0px 1px, rgba(67, 90, 111, 0.47) 0px 4px 10px -4px;
+        }
+        video {
+          max-width: 100%;
+          width: 100%;
+          height: 100%;
         }
       `}</style>
     </div>

@@ -41,6 +41,7 @@ export default function Header() {
               title="Github"
               className="nav-link github-link"
               target="_blank"
+              rel="noreferrer"
             >
               <FiGithub size={24} />
             </a>
@@ -76,6 +77,9 @@ export default function Header() {
         }
         .logo {
           display: flex;
+        }
+        .logo svg {
+          height: 100%;
         }
         nav {
           padding: 0 20px;
