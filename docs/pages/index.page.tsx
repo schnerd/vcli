@@ -1,9 +1,16 @@
 import Head from 'next/head';
 import Main from './main';
+import {MDXProvider} from '@mdx-js/react';
+
+/* eslint-disable react/display-name */
+const mdxComponents = {
+  h1: (props: any) => <h1 id={String(props.children)} {...props} />,
+  h2: (props: any) => <h2 id={String(props.children)} {...props} />,
+};
 
 export default function AppContainer() {
   return (
-    <>
+    <MDXProvider components={mdxComponents}>
       <Head>
         <title>vcli</title>
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -120,6 +127,6 @@ export default function AppContainer() {
           }
         }
       `}</style>
-    </>
+    </MDXProvider>
   );
 }

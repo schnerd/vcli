@@ -24,13 +24,13 @@ export default function Header() {
           </div>
           <div className="header-center">
             <nav>
-              <a className="nav-link" href="#install">
+              <a className="nav-link" href="#Install">
                 Install
               </a>
-              <a className="nav-link" href="#usage">
+              <a className="nav-link" href="#Usage">
                 Usage
               </a>
-              <a className="nav-link" href="#examples">
+              <a className="nav-link" href="#Examples">
                 Examples
               </a>
             </nav>
