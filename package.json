@@ -95,7 +95,7 @@
     "typecheck": "tsc --noEmit",
     "version": "oclif-dev readme && git add README.md",
     "client-build": "next build src/client",
-    "docs:build": "next build docs",
+    "docs:build": "next build docs && cp -r docs/public public",
     "docs:dev": "next dev docs"
   },
   "types": "lib/index.d.ts"
