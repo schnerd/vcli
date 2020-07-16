@@ -1,6 +1,6 @@
 ![Screen Shot 2020-05-30 at 4 (1)](https://user-images.githubusercontent.com/875591/83340893-51d41580-a292-11ea-8e17-7073c447b997.jpg)
 
-2
+3
 
 [![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
 [![Version](https://img.shields.io/npm/v/vcli.svg)](https://npmjs.org/package/vcli)
