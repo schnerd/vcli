@@ -43,7 +43,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js
         uses: actions/setup-node@v1
         with:
           node-version: '14.x'
@@ -58,4 +58,29 @@ jobs:
           upload_url: ${{ needs.release.outputs.release_upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
           asset_path: ./dist/macos/vcli-v0.0.1.pkg
           asset_name: ${{ format('vcli-macos-{0}.pkg', github.run_number) }}
+          asset_content_type: application/octet-stream
+  win:
+    name: Create Windows Build
+    needs: [release]
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+      - run: npm ci
+      - run: npx oclif-dev pack:win
+      - run: ls dist
+      - run: ls dist/win
+      - name: Upload Release Asset
+        id: upload_release_asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.release_upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./dist/win/vcli-v0.0.1.exe
+          asset_name: ${{ format('vcli-win-{0}.exe', github.run_number) }}
           asset_content_type: application/octet-stream
