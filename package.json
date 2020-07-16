@@ -1,5 +1,5 @@
 {
-  "name": "vcli",
+  "name": "@vcli-org/vcli",
   "description": "Create quick visualizations from the command line",
   "version": "0.0.0",
   "author": "David Schnurr @schnerd",
