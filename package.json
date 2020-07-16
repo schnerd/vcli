@@ -85,6 +85,7 @@
       "identifier": "com.vcli.vcli"
     }
   },
+  "private": false,
   "repository": "schnerd/vcli",
   "scripts": {
     "lint": "eslint src --ext ts,tsx",
