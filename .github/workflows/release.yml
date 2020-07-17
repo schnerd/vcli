@@ -3,17 +3,11 @@
 name: Create Release
 
 # Controls when the action will run
-# on:
-#   push:
-#     # Sequence of patterns matched against refs/tags
-#     tags:
-#       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
-
-# Just testing for now
 on:
-  pull_request:
-    branches: [ master ]
-        
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   release:
@@ -30,10 +24,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          #tag_name: ${{ github.ref }}
-          #release_name: Release ${{ github.ref }}
-          tag_name: test
-          release_name: Release ${{ github.run_number }}
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
   macos:
@@ -56,31 +48,39 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.release_upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./dist/macos/vcli-v0.0.1.pkg
-          asset_name: ${{ format('vcli-macos-{0}.pkg', github.run_number) }}
+          asset_path: ${{ format('./dist/macos/vcli-{0}.pkg', github.ref) }}
+          asset_name: ${{ format('vcli-macos-{0}.pkg', github.ref) }}
           asset_content_type: application/octet-stream
-  win:
-    name: Create Windows Build
-    needs: [release]
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Use Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: '14.x'
-      - run: npm ci
-      - run: npx oclif-dev pack:win
-      - run: ls dist
-      - run: ls dist/win
-      - name: Upload Release Asset
-        id: upload_release_asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.release.outputs.release_upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ./dist/win/vcli-v0.0.1.exe
-          asset_name: ${{ format('vcli-win-{0}.exe', github.run_number) }}
-          asset_content_type: application/octet-stream
+# Windows build broken due to following error downloading node
+# Debug at a later date
+#    oclif-dev: building target vcli-v0.0.1-win32-x64.tar.gz
+#    oclif-dev: downloading node-v14.5.0-win-x64
+#    shasum: WARNING: 1 computed checksum did NOT match
+#    node-v14.5.0-win-x64.7z: FAILED
+#    Error: Command failed: C:/windows/system32/cmd.exe /q /s /c "grep node-v14.5.0-win-x64.7z D:/a/vcli/vcli/tmp/cache/14.5.0/SHASUMS256.txt.asc | shasum -a 256 -c -"
+#
+#   win:
+#     name: Create Windows Build
+#     needs: [release]
+#     runs-on: windows-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+#       - name: Use Node.js
+#         uses: actions/setup-node@v1
+#         with:
+#           node-version: '14.x'
+#       - run: npm ci
+#       - run: npx oclif-dev pack:win
+#       - run: ls dist
+#       - run: ls dist/win
+#       - name: Upload Release Asset
+#         id: upload_release_asset 
+#         uses: actions/upload-release-asset@v1
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         with:
+#           upload_url: ${{ needs.release.outputs.release_upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+#           asset_path:  ${{ format('./dist/win/vcli-{0}.exe', github.ref) }}
+#           asset_name: ${{ format('vcli-win-{0}.exe', github.run_number) }}
+#           asset_content_type: application/octet-stream
