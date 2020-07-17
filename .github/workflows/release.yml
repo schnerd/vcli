@@ -15,9 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_upload_url: ${{ steps.create_release.outputs.upload_url }}
+      tag_name: ${{ steps.get_tag_name.outputs.tag_name }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Tag name
+        id: get_tag_name
+        run: echo ::set-output name=tag_name::${GITHUB_REF#refs/tags/}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -48,8 +52,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.release.outputs.release_upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-          asset_path: ${{ format('./dist/macos/vcli-{0}.pkg', github.ref) }}
-          asset_name: ${{ format('vcli-macos-{0}.pkg', github.ref) }}
+          asset_path: ${{ format('./dist/macos/vcli-{0}.pkg', needs.release.outputs.tag_name) }}
+          asset_name: ${{ format('vcli-macos-{0}.pkg', needs.release.outputs.tag_name) }}
           asset_content_type: application/octet-stream
 # Windows build broken due to following error downloading node
 # Debug at a later date
@@ -81,6 +85,6 @@ jobs:
 #           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #         with:
 #           upload_url: ${{ needs.release.outputs.release_upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-#           asset_path:  ${{ format('./dist/win/vcli-{0}.exe', github.ref) }}
-#           asset_name: ${{ format('vcli-win-{0}.exe', github.run_number) }}
+#           asset_path:  ${{ format('./dist/win/vcli-{0}.exe', needs.release.outputs.tag_name) }}
+#           asset_name: ${{ format('vcli-win-{0}.exe', needs.release.outputs.tag_name) }}
 #           asset_content_type: application/octet-stream
