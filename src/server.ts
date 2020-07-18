@@ -1,4 +1,5 @@
 import http from 'http';
+import getPort from 'get-port';
 import {parse} from 'url';
 
 import nextJs from 'next';
@@ -16,7 +17,7 @@ interface ServerOptions {
 }
 
 export async function startServer(opts: ServerOptions) {
-  const {port = 8888, host = '127.0.0.1', data, logger, dev} = opts;
+  const {port, host = '127.0.0.1', data, logger, dev} = opts;
 
   const app = express();
 
@@ -37,8 +38,8 @@ export async function startServer(opts: ServerOptions) {
 
   const server = http.createServer(app);
 
-  await new Promise((resolve) => {
-    server.listen(port, host, () => {
+  await new Promise((resolve, reject) => {
+    function onServerStart() {
       resolve();
 
       const url = `http://${host}:${(server.address() as any).port}`;
@@ -49,7 +50,19 @@ export async function startServer(opts: ServerOptions) {
       );
 
       opener(url);
-    });
+    }
+
+    if (port) {
+      server.listen(port, host, onServerStart);
+      return;
+    }
+
+    getPort({host: '127.0.0.1', port: getPort.makeRange(8888, 9999)})
+      .then((openPort) => {
+        console.log('Open port', openPort);
+        server.listen(openPort, host, onServerStart);
+      })
+      .catch(reject);
   });
 
   return {

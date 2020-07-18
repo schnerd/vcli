@@ -61,6 +61,9 @@ class Vcli extends Command {
     facet: flags.string({
       description: 'Column index/name that will be used to group data into separate charts',
     }),
+    port: flags.integer({
+      description: 'Port to run the local webserver on (default is 8888)',
+    }),
     dev: flags.boolean({hidden: true}),
   };
 
@@ -94,6 +97,7 @@ class Vcli extends Command {
       logger: this.log.bind(this),
       dev: Boolean(flags.dev),
       data: this.dataPromise,
+      port: flags.port,
     });
   }
 
