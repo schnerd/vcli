@@ -40,7 +40,7 @@ export default class DataContainer {
 
         let row;
         let val;
-        for (let r = 0; r < SAMPLE_SIZE; r++) {
+        for (let r = 0; r < sample.length; r++) {
           row = sample[r];
           val = row[i];
           if (isDate && !DATE_TIME_RE.test(val) && !DATE_SIMPLE_RE.test(val)) {

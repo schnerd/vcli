@@ -112,7 +112,7 @@ export default function Analysis(props: Props) {
   );
   const onChangeYAgg = useCallback(
     (v: ValueType<NumAggOption>) => {
-      setConfig({...config, yAagg: v ? (v as NumAggOption).value : null});
+      setConfig({...config, yAgg: v ? (v as NumAggOption).value : null});
     },
     [config, setConfig],
   );
