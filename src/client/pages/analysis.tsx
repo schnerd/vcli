@@ -237,6 +237,10 @@ export default function Analysis(props: Props) {
       Object.keys(groupedByX).forEach((xKey) => {
         const xRows = groupedByX[xKey];
         const value = (function () {
+          if (xRows.length === 0) {
+            // TODO change this for count agg?
+            return null;
+          }
           switch (yAgg) {
             case NumAggType.min:
               return min(xRows, yAccessor);
