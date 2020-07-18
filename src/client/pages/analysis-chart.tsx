@@ -441,6 +441,8 @@ export const AnalysisChart = memo(function (props: Props) {
     if (xIsDate) {
       ($root.select('.scroll').node() as HTMLElement).scrollTo(1e9, 0);
     }
+    // Show the show all if necessary (usually hidden by default)
+    $root.select('.show-all').classed('hidden', false);
   }, [rect, rows, xIsDate, dateAgg, setTooltipConfig, setTooltipVisible]);
 
   const nRows = data.length;
@@ -455,7 +457,7 @@ export const AnalysisChart = memo(function (props: Props) {
           <div className="axis axis-x" ref={xAxisRef} />
         </div>
         {nRows > HIDE_AFTER && !showAll && (
-          <div className="show-all">
+          <div className="show-all hidden">
             <button className="show-all-btn" onClick={() => setShowAll(true)}>
               Show {hiddenRows} more value{hiddenRows === 1 ? '' : 's'}
             </button>
@@ -544,6 +546,9 @@ export const AnalysisChart = memo(function (props: Props) {
           align-items: center;
           justify-content: stretch;
           flex: 0 0 auto;
+        }
+        .show-all.hidden {
+          display: none;
         }
         .show-all-btn {
           border: none;
