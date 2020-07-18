@@ -344,7 +344,7 @@ export default function Analysis(props: Props) {
                 <div className="agg-select-wrapper">
                   <Select
                     options={NUM_AGG_OPTIONS}
-                    value={yAggOption}
+                    value={yAggOption == null ? NUM_AGG_OPTIONS[0] : yAggOption}
                     placeholder="Agg"
                     onChange={onChangeYAgg}
                     {...selectStyleProps}
@@ -357,7 +357,12 @@ export default function Analysis(props: Props) {
             <div className="config-name">Facet By</div>
             <div className="config-control">
               <div className="field-select-wrapper">
-                <FieldSelect options={allFieldOptions} value={facet} onChange={onChangeFacet} />
+                <FieldSelect
+                  options={allFieldOptions}
+                  value={facet}
+                  onChange={onChangeFacet}
+                  isClearable
+                />
               </div>
             </div>
           </div>
