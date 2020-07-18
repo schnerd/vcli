@@ -162,25 +162,27 @@ class Vcli extends Command {
       return null;
     };
 
-    xFlag = coerceToIndex(xFlag);
-    if (xFlag === null) {
+    const xFlagIndex = coerceToIndex(xFlag);
+    if (xFlagIndex === null) {
       throw new Error(`Could not locate column "${xFlag}" for x-axis`);
     }
-    yFlag = coerceToIndex(yFlag);
-    if (yFlag === null) {
+    const yFlagIndex = coerceToIndex(yFlag);
+    if (yFlagIndex === null) {
       throw new Error(`Could not locate column "${yFlag}" for y-axis`);
     }
+
+    let facetFlagIndex = null;
     if (facetFlag) {
-      facetFlag = coerceToIndex(facetFlag);
-      if (facetFlag === null) {
+      facetFlagIndex = coerceToIndex(facetFlag);
+      if (facetFlagIndex === null) {
         throw new Error(`"${facetFlag}" is not a valid facet column`);
       }
     }
 
     this.chartConfig = {
-      x: xFlag,
-      y: yFlag,
-      facet: facetFlag == undefined ? null : facetFlag,
+      x: xFlagIndex,
+      y: yFlagIndex,
+      facet: facetFlag == undefined ? null : facetFlagIndex,
       dateAgg: dateAgg == undefined ? null : dateAgg,
       yAgg: yAgg == undefined ? null : yAgg,
     };
