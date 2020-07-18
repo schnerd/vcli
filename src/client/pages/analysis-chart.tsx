@@ -26,6 +26,7 @@ const DATE_BAR_PADDING = 2;
 let tooltipTimerId: any = null;
 
 type Selection = D3Selection<any, any, any, any>;
+type MouseCallback = (d: DataPoint) => void;
 
 interface XAxis {
   getBarWidth(): number;
@@ -40,6 +41,7 @@ class OrdinalXAxis implements XAxis {
   $xAxis: Selection;
   numBars: number;
   rotateLabels: boolean;
+  rows: DataPoint[];
   labels: string[];
   maxLabelChars: number;
   axisHeight: number;
@@ -50,10 +52,18 @@ class OrdinalXAxis implements XAxis {
   barWidth = 0;
   barOffset = 0;
   scale!: ScaleBand<any>;
+  onTickMouseEnter: MouseCallback;
+  onTickMouseLeave: MouseCallback;
 
-  constructor(args: {rows: DataPoint[]; $xAxis: Selection}) {
+  constructor(args: {
+    rows: DataPoint[];
+    $xAxis: Selection;
+    onTickMouseEnter: MouseCallback;
+    onTickMouseLeave: MouseCallback;
+  }) {
     const {rows, $xAxis} = args;
     this.$xAxis = $xAxis;
+    this.rows = rows;
     this.labels = rows.map((d) => String(d.label));
     this.numBars = this.labels.length;
     this.maxLabelChars = max(this.labels, (d) => String(d).length);
@@ -62,6 +72,8 @@ class OrdinalXAxis implements XAxis {
       ? Math.min(this.maxLabelChars * 6, 100)
       : this.tickLineHeight;
     this.tickWidth = this.rotateLabels ? 25 : this.maxLabelChars * 9;
+    this.onTickMouseEnter = args.onTickMouseEnter;
+    this.onTickMouseLeave = args.onTickMouseLeave;
   }
 
   getBarWidth() {
@@ -130,7 +142,13 @@ class OrdinalXAxis implements XAxis {
         (update) => update,
         (exit) => exit.remove(),
       )
-      .text((d) => (d === '' ? '[empty]' : d));
+      .text((d) => (d === '' ? '[empty]' : d))
+      .on('mouseenter.tt', (d, i) => {
+        this.onTickMouseEnter(this.rows[i]);
+      })
+      .on('mouseleave.tt', (d, i) => {
+        this.onTickMouseLeave(this.rows[i]);
+      });
 
     if (this.rotateLabels) {
       const xTickOffset = Math.ceil(bandwidth / 2 + 2);
@@ -306,9 +324,45 @@ export const AnalysisChart = memo(function (props: Props) {
     const width = elRect.width;
     const height = elRect.height;
 
+    function showXTooltip(d: DataPoint) {
+      const {label, value} = d;
+
+      let title: string;
+      if (label instanceof Date) {
+        if (dateAgg === DateAggType.year) {
+          title = String(label.getFullYear());
+        } else if (dateAgg === DateAggType.month) {
+          title = label.toLocaleString('default', {month: 'short'});
+        } else {
+          title = label.toLocaleString('default', {month: 'short', day: 'numeric'});
+        }
+      } else {
+        title = label;
+      }
+
+      clearTimeout(tooltipTimerId);
+      setTooltipVisible(true);
+      setTooltipConfig({
+        evt: d3Event,
+        title,
+        value: formatNum(value),
+      });
+    }
+
+    function hideXTooltip(_d: DataPoint) {
+      tooltipTimerId = setTimeout(() => {
+        setTooltipVisible(false);
+      }, 200);
+    }
+
     const xAxis: XAxis = xIsDate
       ? new DateXAxis({rows, $xAxis, dateAgg})
-      : new OrdinalXAxis({rows, $xAxis});
+      : new OrdinalXAxis({
+          rows,
+          $xAxis,
+          onTickMouseEnter: showXTooltip,
+          onTickMouseLeave: hideXTooltip,
+        });
 
     const gridHeight = height - xAxis.getHeight() - X_AXIS_PADDING - CHART_PADDING;
 
@@ -407,35 +461,8 @@ export const AnalysisChart = memo(function (props: Props) {
       .attr('height', (d) => {
         return Math.abs(yScale(d.value) - yScale(0));
       })
-      .on('mouseenter.tt', (d) => {
-        const {label, value} = d;
-
-        let title: string;
-        if (label instanceof Date) {
-          if (dateAgg === DateAggType.year) {
-            title = String(label.getFullYear());
-          } else if (dateAgg === DateAggType.month) {
-            title = label.toLocaleString('default', {month: 'short'});
-          } else {
-            title = label.toLocaleString('default', {month: 'short', day: 'numeric'});
-          }
-        } else {
-          title = label;
-        }
-
-        clearTimeout(tooltipTimerId);
-        setTooltipVisible(true);
-        setTooltipConfig({
-          evt: d3Event,
-          title,
-          value: formatNum(value),
-        });
-      })
-      .on('mouseleave.tt', () => {
-        tooltipTimerId = setTimeout(() => {
-          setTooltipVisible(false);
-        }, 200);
-      });
+      .on('mouseenter.tt', showXTooltip)
+      .on('mouseleave.tt', hideXTooltip);
 
     // Scroll all the way right (latest data) for dates
     if (xIsDate) {
