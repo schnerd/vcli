@@ -68,6 +68,22 @@ $ vcli -x date:month -y cases:sum --facet state data.csv
 $ curl -s https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv | vcli
 ```
 
+# Troubleshooting
+
+### Working with very large files
+
+By default Node.js processes have 512mb of memory, if you are processing a very large file you could run into out of memory errors like the following:
+
+```
+FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory
+```
+
+You can increase this memory limit by prepending your vcli command with an extra option:
+
+```
+export NODE_OPTIONS="--max_old_space_size=8192" && vcli ...
+```
+
 # Contributing
 
 Contributions are welcome, see CONTRIBUTING.md

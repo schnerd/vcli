@@ -69,6 +69,24 @@ $ curl -s https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-coun
 $ python my-csv-generator.py | vcli
 ```
 
+# Troubleshooting
+
+### Working with very large files
+
+By default Node.js processes have 512mb of memory, if you are processing a very large file you could run into out of memory errors like the following:
+
+```
+FATAL ERROR: CALL_AND_RETRY_LAST Allocation failed - JavaScript heap out of memory
+```
+
+You can increase this memory limit by prepending your vcli command with an extra option:
+
+```
+export NODE_OPTIONS="--max_old_space_size=8192" && vcli ...
+```
+
+The above command would allow the node process to use up to 8gb of memory while it's running.
+
 # Resources
 
 If vcli isn't quite what you're looking for, you might like one of these browser-based visualizers:
