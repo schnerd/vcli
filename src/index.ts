@@ -115,7 +115,7 @@ class Vcli extends Command {
   parseHeaderRow(header: string[]) {
     let xFlag = this.flags[X_FLAG];
     let yFlag = this.flags[Y_FLAG];
-    let facetFlag = this.flags.facet;
+    const facetFlag = this.flags.facet;
     let dateAgg: DateAggType | undefined;
     let yAgg: NumAggType | undefined;
     if (yFlag && !xFlag) {

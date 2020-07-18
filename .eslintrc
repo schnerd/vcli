@@ -13,6 +13,8 @@
     "eqeqeq": "off",
     "no-eq-null": "off",
     "func-names": "off",
+    "no-warning-comments": "off",
+    "valid-jsdoc": "off",
     "react/react-in-jsx-scope": "off",
     "@typescript-eslint/no-empty-interface": "off",
     "@typescript-eslint/no-empty-function": "off",

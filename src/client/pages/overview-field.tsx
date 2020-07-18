@@ -1,6 +1,6 @@
 // @ts-ignore
 import {bin, quantileSorted} from 'd3-array';
-import {useCallback, useMemo, useRef, useState} from 'react';
+import {useCallback, useMemo, useRef} from 'react';
 import {DataTypes} from '../types';
 import {formatNumNice} from '../utils/format';
 import DataContainer, {NULL} from './data-container';
