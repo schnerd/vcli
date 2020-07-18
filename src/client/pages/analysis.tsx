@@ -172,7 +172,7 @@ export default function Analysis(props: Props) {
     const xIsDate = types[x] === DataTypes.date;
     const xIsText = types[x] === DataTypes.text;
 
-    const final = [];
+    const validFacets = [];
     const xAccessor = (row: DataRow): any => row[x];
     const yAccessor = (row: DataRow): any => row[y];
 
@@ -275,11 +275,11 @@ export default function Analysis(props: Props) {
           // Sort by greatest value first
           groupedByXArray.sort((a, b) => b.value - a.value);
         }
-        final.push({key: facetKey, values: groupedByXArray});
+        validFacets.push({key: facetKey, values: groupedByXArray});
       }
     });
 
-    return final;
+    return validFacets;
   }, [header, facetedRows, x, y, yAgg, dateAgg, types]);
 
   const nFacets = facets ? Object.keys(facets).length : 1;
