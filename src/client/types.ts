@@ -26,6 +26,7 @@ export enum DateAggType {
 }
 
 export enum NumAggType {
+  count,
   first,
   min,
   max,

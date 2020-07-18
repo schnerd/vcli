@@ -42,7 +42,7 @@ OPTIONS
                        (supports day/month/year)
 
   -y, --y-axis=y-axis  Column index/name to plot on y-axis of charts. You can also specify an aggregate function like sales:sum (supports
-                       min/max/sum/mean/median/p5/p95)
+                       count/min/max/sum/mean/median/p5/p95)
 
   --facet=facet        Column index/name that will be used to group data into separate charts
 ```

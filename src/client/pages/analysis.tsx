@@ -51,6 +51,10 @@ const NUM_AGG_OPTIONS: NumAggOption[] = [
     label: 'First',
   },
   {
+    value: NumAggType.count,
+    label: 'Count',
+  },
+  {
     value: NumAggType.min,
     label: 'Min',
   },
@@ -237,8 +241,10 @@ export default function Analysis(props: Props) {
       Object.keys(groupedByX).forEach((xKey) => {
         const xRows = groupedByX[xKey];
         const value = (function () {
+          if (yAgg === NumAggType.count) {
+            return xRows.length;
+          }
           if (xRows.length === 0) {
-            // TODO change this for count agg?
             return null;
           }
           switch (yAgg) {

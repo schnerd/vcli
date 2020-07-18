@@ -21,7 +21,7 @@ const X_FLAG = 'x-axis';
 const Y_FLAG = 'y-axis';
 
 const X_AGG_RE = /:(day|month|year)$/;
-const Y_AGG_RE = /:(min|max|sum|mean|median|p5|p95)$/;
+const Y_AGG_RE = /:(count|min|max|sum|mean|median|p5|p95)$/;
 
 const initialChartConfig: ChartConfig = {
   x: null,
