@@ -206,6 +206,7 @@ class Vcli extends Command {
             csvParse({
               cast: true,
               cast_date: false,
+              skip_empty_lines: true,
             }),
           )
           .on('error', (error) => {
