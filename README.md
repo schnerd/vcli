@@ -48,6 +48,10 @@ OPTIONS
   --port=port          Port to run the local webserver on (default is 8888)
 ```
 
+vcli does not store or send any of your data over the internet – everything takes place on your local machine.
+
+Because it visualizes your data using a browser, it is not useful during remote sessions like ssh or other headless environments.
+
 # Examples 
 
 ### Launch "Overview" visualization with stats & distributions for all columns in the file
