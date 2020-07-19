@@ -1,7 +1,7 @@
 {
   "name": "@vcli-org/vcli",
   "description": "Create quick visualizations from the command line",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "David Schnurr @schnerd",
   "bin": {
     "vcli": "./bin/run"
